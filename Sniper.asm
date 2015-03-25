@@ -21,6 +21,9 @@ Person STRUCT
      lpProc    DWORD NULL
 Person ENDS
 
+DrawStage PROTO
+DrawMouse PROTO
+
 .data
      stage BYTE 0
      
@@ -85,6 +88,8 @@ WinProc PROC, hWnd:DWORD, localMsg:DWORD, wParam:DWORD, lParam:DWORD
      .IF     eax == WM_LBUTTONDOWN
           INVOKE MessageBox, hWnd, ADDR PopupText, ADDR PopupTitle, MB_OK
      .ELSEIF eax == WM_PAINT
+          INVOKE DrawStage
+          INVOKE DrawMouse
      .ELSEIF eax == WM_CLOSE
           INVOKE DestroyWindow, hWnd
      .ELSEIF eax == WM_DESTROY
@@ -108,5 +113,14 @@ ErrorHandler PROC
      INVOKE LocalFree, pErrorMsg
      ret
 ErrorHandler ENDP
+
+;全局变量stage表示关卡号。0表示开始界面
+DrawStage PROC
+     ret
+DrawStage ENDP
+
+DrawMouse PROC
+     ret
+DrawMouse ENDP
 
 END WinMain
