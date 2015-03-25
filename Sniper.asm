@@ -13,6 +13,17 @@ includelib \masm32\lib\gdi32.lib
 includelib \masm32\lib\user32.lib
 includelib \masm32\lib\kernel32.lib
 
+GET_X_LPARAM MACRO lParam
+     mov eax, lParam
+     and eax, 0FFFFh
+ENDM
+
+GET_Y_LPARAM MACRO lParam
+     mov eax, lParam
+     shr eax, 16
+     and eax, 0FFFFh
+ENDM
+
 Person STRUCT
      alive     BYTE  1
      position  POINT <>
@@ -80,12 +91,18 @@ ExitProgram:
 WinMain ENDP
 
 WinProc PROC, hWnd:DWORD, localMsg:DWORD, wParam:DWORD, lParam:DWORD
+     LOCAL xPos:DWORD, yPos:DWORD
 .data
      PopupTitle BYTE "Sniper", 0
      PopupText  BYTE "Fire!", 0
 .code
      mov eax, localMsg
      .IF     eax == WM_LBUTTONDOWN
+          GET_X_LPARAM lParam
+          mov xPos, eax
+          GET_Y_LPARAM lParam
+          mov yPos, eax
+          INVOKE ltoa, yPos, ADDR PopupText
           INVOKE MessageBox, hWnd, ADDR PopupText, ADDR PopupTitle, MB_OK
      .ELSEIF eax == WM_PAINT
           INVOKE DrawStage
