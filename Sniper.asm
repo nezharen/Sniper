@@ -13,6 +13,17 @@ includelib \masm32\lib\gdi32.lib
 includelib \masm32\lib\user32.lib
 includelib \masm32\lib\kernel32.lib
 
+Person STRUCT
+     alive     BYTE  1
+     position  POINT <>
+     speed     DWORD 0
+     direction BYTE  0
+     lpProc    DWORD NULL
+Person ENDS
+
+.data
+     stage BYTE 0
+     
 .code
 
 WinMain PROC
