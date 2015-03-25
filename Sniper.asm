@@ -73,17 +73,14 @@ WinProc PROC, hWnd:DWORD, localMsg:DWORD, wParam:DWORD, lParam:DWORD
      mov eax, localMsg
      .IF     eax == WM_LBUTTONDOWN
           INVOKE MessageBox, hWnd, ADDR PopupText, ADDR PopupTitle, MB_OK
-          ret
+     .ELSEIF eax == WM_PAINT
      .ELSEIF eax == WM_CLOSE
           INVOKE DestroyWindow, hWnd
-          ret
      .ELSEIF eax == WM_DESTROY
           INVOKE PostQuitMessage, 0
-          ret
-     .ELSE
-          INVOKE DefWindowProc, hWnd, localMsg, wParam, lParam
-          ret
      .ENDIF
+     INVOKE DefWindowProc, hWnd, localMsg, wParam, lParam
+     ret
 WinProc ENDP
 
 ErrorHandler PROC
