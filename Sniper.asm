@@ -47,13 +47,14 @@ WinMain PROC
      MainWin      WNDCLASS <NULL, WinProc, NULL, NULL, NULL, NULL, NULL, \
                             COLOR_WINDOW, NULL, className>
      msg          MSG      <>
+     hIcon        DWORD    ?
      hMainWnd     DWORD    ?
      hInstance    DWORD    ?
 .code
      INVOKE GetModuleHandle, NULL
      mov hInstance, eax
      mov MainWin.hInstance, eax
-     INVOKE LoadIcon, NULL, IDI_APPLICATION
+     INVOKE LoadIcon, hInstance, 1
      mov MainWin.hIcon, eax
      INVOKE LoadCursor, NULL, IDC_ARROW
      mov MainWin.hCursor, eax
