@@ -13,6 +13,9 @@ includelib \masm32\lib\gdi32.lib
 includelib \masm32\lib\user32.lib
 includelib \masm32\lib\kernel32.lib
 
+CURSOR_HEIGHT = 256
+CURSOR_WIDTH = 256
+
 GET_X_LPARAM MACRO lParam
      mov eax, lParam
      and eax, 0FFFFh
@@ -33,11 +36,16 @@ Person STRUCT
 Person ENDS
 
 DrawStage PROTO
-DrawMouse PROTO
+DrawMouse PROTO, hdc: HDC, hWnd: HWND
+RestoreBackground PROTO, hdc: HDC
 
 .data
      stage BYTE 0
-     
+     hCursorBmp   HBITMAP  ?
+     hdcBuffer     HDC  ?
+     oPoint   POINT <>
+     hbmBuffer    HBITMAP 0
+
 .code
 
 WinMain PROC
@@ -92,7 +100,7 @@ ExitProgram:
 WinMain ENDP
 
 WinProc PROC, hWnd:DWORD, localMsg:DWORD, wParam:DWORD, lParam:DWORD
-     LOCAL xPos:DWORD, yPos:DWORD
+     LOCAL xPos:DWORD, yPos:DWORD, hdc: HDC, ps: PAINTSTRUCT
 .data
      PopupTitle BYTE "Sniper", 0
      PopupText  BYTE "Fire!", 0
@@ -106,12 +114,26 @@ WinProc PROC, hWnd:DWORD, localMsg:DWORD, wParam:DWORD, lParam:DWORD
           INVOKE ltoa, yPos, ADDR PopupText
           INVOKE MessageBox, hWnd, ADDR PopupText, ADDR PopupTitle, MB_OK
      .ELSEIF eax == WM_PAINT
+          INVOKE BeginPaint, hWnd, ADDR ps
+          mov hdc, eax
+          
           INVOKE DrawStage
-          INVOKE DrawMouse
+          INVOKE DrawMouse, hdc, hWnd
+
+          INVOKE EndPaint, hWnd, ADDR ps
      .ELSEIF eax == WM_CLOSE
           INVOKE DestroyWindow, hWnd
      .ELSEIF eax == WM_DESTROY
           INVOKE PostQuitMessage, 0
+     .ELSEIF eax == WM_CREATE
+          INVOKE LoadBitmap, hInstance, 2
+          mov hCursorBmp, eax
+     .ELSEIF eax == WM_MOUSEMOVE
+          INVOKE GetDC, hWnd
+          mov hdc, eax
+          INVOKE RestoreBackground, hdc
+          INVOKE DrawMouse, hdc, hWnd
+          INVOKE DeleteDC, hdc
      .ENDIF
      INVOKE DefWindowProc, hWnd, localMsg, wParam, lParam
      ret
@@ -132,13 +154,56 @@ ErrorHandler PROC
      ret
 ErrorHandler ENDP
 
-;全局变量stage表示关卡号。0表示开始界面
+;?��??��?stage表示?�卡?��?表示开始�???
 DrawStage PROC
      ret
 DrawStage ENDP
 
-DrawMouse PROC
+DrawMouse PROC, hdc: HDC, hWnd: HWND
+     LOCAL hdcMem: HDC,
+     hbmOld: HBITMAP,
+     hPoint: POINT,
+     rc: RECT 
+     
+     INVOKE CreateCompatibleDC, hdc
+     mov hdcMem, eax
+     INVOKE SelectObject, hdcMem, hCursorBmp
+     mov hbmOld, eax
+     INVOKE GetCursorPos, ADDR hPoint
+     INVOKE GetWindowRect, hWnd, ADDR rc
+     
+     push edx
+     mov eax, hPoint.x
+     mov edx, hPoint.y
+     sub eax, rc.left
+     sub edx, rc.top
+     sub edx, 25 + 128
+     sub eax, 128
+     mov oPoint.x, eax
+     mov oPoint.y, edx
+
+     .IF hbmBuffer != 0
+          INVOKE DeleteDC, hdcBuffer
+          INVOKE DeleteObject, hbmBuffer
+     .ENDIF
+     INVOKE CreateCompatibleDC, hdc
+     mov hdcBuffer, eax
+     INVOKE CreateCompatibleBitmap, hdc, CURSOR_WIDTH, CURSOR_HEIGHT
+     mov hbmBuffer, eax
+     INVOKE SelectObject, hdcBuffer, hbmBuffer
+
+     INVOKE BitBlt, hdcBuffer, 0, 0, CURSOR_WIDTH, CURSOR_HEIGHT, hdc, oPoint.x, oPoint.y, SRCCOPY
+     INVOKE BitBlt, hdc, oPoint.x, oPoint.y, CURSOR_WIDTH, CURSOR_HEIGHT, hdcMem, 0, 0, SRCAND
+     pop edx
+     INVOKE SelectObject, hdcMem, hbmOld
+     INVOKE DeleteDC, hdcMem
+
      ret
 DrawMouse ENDP
 
+RestoreBackground PROC, hdc: HDC
+
+     INVOKE BitBlt, hdc, oPoint.x, oPoint.y, CURSOR_WIDTH, CURSOR_HEIGHT, hdcBuffer, 0, 0, SRCCOPY
+     ret
+RestoreBackground ENDP
 END WinMain
