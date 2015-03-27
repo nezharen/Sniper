@@ -13,8 +13,13 @@ includelib \masm32\lib\gdi32.lib
 includelib \masm32\lib\user32.lib
 includelib \masm32\lib\kernel32.lib
 
-CURSOR_HEIGHT = 256
-CURSOR_WIDTH = 256
+DIED            equ 0
+DYING           equ 1
+ALIVE           equ 2
+DIRECTION_LEFT  equ 0
+DIRECTION_RIGHT equ 1
+CURSOR_HEIGHT   equ 256
+CURSOR_WIDTH    equ 256
 
 GET_X_LPARAM MACRO lParam
      mov eax, lParam
@@ -38,9 +43,15 @@ Person ENDS
 DrawStage PROTO
 DrawMouse PROTO, hdc: HDC, hWnd: HWND
 RestoreBackground PROTO, hdc: HDC
+updateStage PROTO, hWnd:HWND, uMsg:DWORD, idEvent:DWORD, dwTime:DWORD
 
 .data
-     stage BYTE 0
+     stage  DWORD  0
+     person Person <ALIVE, <0, 0>, 0, DIRECTION_RIGHT, NULL>, <ALIVE, <0, 0>, 0, DIRECTION_LEFT, NULL>
+     personStageSize equ ($ - person)
+            Person <>, <>
+            Person <>, <>
+
      hCursorBmp   HBITMAP  ?
      hdcBuffer     HDC  ?
      oPoint   POINT <>
@@ -55,9 +66,9 @@ WinMain PROC
      MainWin      WNDCLASS <NULL, WinProc, NULL, NULL, NULL, NULL, NULL, \
                             COLOR_WINDOW, NULL, className>
      msg          MSG      <>
-     hIcon        DWORD    ?
-     hMainWnd     DWORD    ?
-     hInstance    DWORD    ?
+     hIcon        HICON    ?
+     hMainWnd     HWND    ?
+     hInstance    HINSTANCE    ?
 .code
      INVOKE GetModuleHandle, NULL
      mov hInstance, eax
@@ -86,6 +97,9 @@ WinMain PROC
      INVOKE ShowWindow, hMainWnd, SW_SHOWNORMAL
      INVOKE UpdateWindow, hMainWnd
 
+;Test Timer
+     INVOKE SetTimer, hMainWnd, stage, 5000, updateStage
+
 MessageLoop:
      INVOKE GetMessage, ADDR msg, NULL, NULL, NULL
      .IF eax == 0
@@ -99,7 +113,7 @@ ExitProgram:
 
 WinMain ENDP
 
-WinProc PROC, hWnd:DWORD, localMsg:DWORD, wParam:DWORD, lParam:DWORD
+WinProc PROC, hWnd:HWND, localMsg:DWORD, wParam:WPARAM, lParam:LPARAM
      LOCAL xPos:DWORD, yPos:DWORD, hdc: HDC, ps: PAINTSTRUCT
 .data
      PopupTitle BYTE "Sniper", 0
@@ -112,7 +126,7 @@ WinProc PROC, hWnd:DWORD, localMsg:DWORD, wParam:DWORD, lParam:DWORD
           GET_Y_LPARAM lParam
           mov yPos, eax
           INVOKE ltoa, yPos, ADDR PopupText
-          INVOKE MessageBox, hWnd, ADDR PopupText, ADDR PopupTitle, MB_OK
+          INVOKE MessageBox, hWnd, ADDR PopupText, ADDR MainWndTitle, MB_OK
      .ELSEIF eax == WM_PAINT
           INVOKE BeginPaint, hWnd, ADDR ps
           mov hdc, eax
@@ -138,6 +152,12 @@ WinProc PROC, hWnd:DWORD, localMsg:DWORD, wParam:DWORD, lParam:DWORD
      INVOKE DefWindowProc, hWnd, localMsg, wParam, lParam
      ret
 WinProc ENDP
+
+updateStage PROC, hWnd:HWND, uMsg:DWORD, idEvent:DWORD, dwTime:DWORD
+.code
+     
+     ret
+updateStage ENDP
 
 ErrorHandler PROC
 .data
