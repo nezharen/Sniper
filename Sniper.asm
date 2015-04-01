@@ -43,11 +43,17 @@ Person ENDS
 
 DrawStage PROTO
 updateStage PROTO, hWnd:HWND, uMsg:DWORD, idEvent:DWORD, dwTime:DWORD
+
+;-----------------------------------------------------------------------------------------------------
+; Function defined in Cursor.asm
 LoadCursorBitmap PROTO
 CreateOldBkgd PROTO, hdc: HDC
-DrawMouse PROTO, hdc: HDC, hWnd: HWND
-RedrawMouse PROTO, hWnd: HWND, hdc: HDC
+DrawMouse PROTO, hdc: HDC, x: LONG, y: LONG
+RedrawMouse PROTO, hdc: HDC, x: LONG, y: LONG
 DeleteOldBkgd PROTO
+GetCursorWinPos PROTO, hWnd: HWND, point: PTR POINT
+SetCursorWinPos PROTO, x: LONG, y: LONG
+;------------------------------------------------------------------------------------------------------
 
 .data
      stage  DWORD  0
@@ -113,7 +119,7 @@ ExitProgram:
 WinMain ENDP
 
 WinProc PROC, hWnd:HWND, localMsg:DWORD, wParam:WPARAM, lParam:LPARAM
-     LOCAL xPos:DWORD, yPos:DWORD, hdc: HDC, ps: PAINTSTRUCT
+     LOCAL xPos:DWORD, yPos:DWORD, hdc: HDC, ps: PAINTSTRUCT, hPoint: POINT
 .data
      PopupTitle BYTE "Sniper", 0
      PopupText  BYTE "Fire!", 0
@@ -132,7 +138,9 @@ WinProc PROC, hWnd:HWND, localMsg:DWORD, wParam:WPARAM, lParam:LPARAM
 
           INVOKE CreateOldBkgd, hdc
           INVOKE DrawStage
-          INVOKE DrawMouse, hdc, hWnd
+          INVOKE GetCursorWinPos, hWnd, ADDR hPoint
+          INVOKE SetCursorWinPos, hPoint.x, hPoint.y
+          INVOKE DrawMouse, hdc, hPoint.x, hPoint.y
 
           INVOKE EndPaint, hWnd, ADDR ps
      .ELSEIF eax == WM_CLOSE
@@ -145,7 +153,8 @@ WinProc PROC, hWnd:HWND, localMsg:DWORD, wParam:WPARAM, lParam:LPARAM
      .ELSEIF eax == WM_MOUSEMOVE
           INVOKE GetDC, hWnd
           mov hdc, eax
-          INVOKE RedrawMouse, hWnd, hdc
+          INVOKE GetCursorWinPos, hWnd, ADDR hPoint
+          INVOKE RedrawMouse, hdc, hPoint.x, hPoint.y
           INVOKE ReleaseDC, hWnd, hdc
      .ENDIF
      INVOKE DefWindowProc, hWnd, localMsg, wParam, lParam

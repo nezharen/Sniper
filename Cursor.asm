@@ -17,17 +17,19 @@ CURSOR_HEIGHT   equ 256
 CURSOR_WIDTH    equ 256
 WINDOW_WIDTH    equ 800
 WINDOW_HEIGHT   equ 600
+CURSOR_RES_ID   equ 2
 
 .data
-hCursorBmp     HBITMAP ?
-hdcOldBkGd     HDC     ?
-hbmpOldBkGd    HBITMAP ?
+hCursorBmp  HBITMAP ?
+hdcOldBkGd  HDC     ?
+hbmpOldBkGd HBITMAP ?
+CursorPos   POINT   <>       
 
 .code
 
 LoadCursorBitmap PROC USES eax
     INVOKE GetModuleHandle, NULL
-    INVOKE LoadBitmap, eax, 2
+    INVOKE LoadBitmap, eax, CURSOR_RES_ID
     mov hCursorBmp, eax
     
     ret
@@ -44,34 +46,22 @@ CreateOldBkgd PROC USES eax, hdc: HDC
     ret
 CreateOldBkgd ENDP
 
-DrawMouse PROC USES eax edx, hdc: HDC, hWnd: HWND
-     LOCAL hdcMem: HDC,
-     hbmOld: HBITMAP,
-     hPoint: POINT,
-     rc: RECT 
+DrawMouse PROC USES eax edx, hdc: HDC, x: LONG, y: LONG
+     LOCAL hdcMem: HDC, hbmOld: HBITMAP
      
      INVOKE CreateCompatibleDC, hdc
      mov hdcMem, eax
      INVOKE SelectObject, hdcMem, hCursorBmp
      mov hbmOld, eax
-     INVOKE GetCursorPos, ADDR hPoint
-     INVOKE GetWindowRect, hWnd, ADDR rc
-     
-     mov eax, hPoint.x
-     mov edx, hPoint.y
-     sub eax, rc.left
-     sub edx, rc.top
-     sub edx, 25 + CURSOR_WIDTH / 2
-     sub eax, CURSOR_HEIGHT / 2
 
-     INVOKE BitBlt, hdc, eax, edx, CURSOR_WIDTH, CURSOR_HEIGHT, hdcMem, 0, 0, SRCAND
+     INVOKE BitBlt, hdc, x, y, CURSOR_WIDTH, CURSOR_HEIGHT, hdcMem, 0, 0, SRCAND
      INVOKE SelectObject, hdcMem, hbmOld
      INVOKE DeleteDC, hdcMem
 
      ret
 DrawMouse ENDP
 
-RedrawMouse PROC USES eax, hWnd: HWND, hdc: HDC
+RedrawMouse PROC USES eax, hdc: HDC, x: LONG, y: LONG
     LOCAL hdcBuffer: HDC, hbmpBuffer: HBITMAP, hbmpOldBuffer: HBITMAP
     
     INVOKE CreateCompatibleDC, hdc
@@ -82,7 +72,7 @@ RedrawMouse PROC USES eax, hWnd: HWND, hdc: HDC
     mov hbmpOldBuffer, eax
           
     INVOKE BitBlt, hdcBuffer, 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT, hdcOldBkGd, 0, 0, SRCCOPY
-    INVOKE DrawMouse, hdcBuffer, hWnd
+    INVOKE DrawMouse, hdcBuffer, x, y
     INVOKE BitBlt, hdc, 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT, hdcBuffer, 0, 0, SRCCOPY
 
     INVOKE SelectObject, hdcBuffer, hbmpOldBuffer
@@ -96,5 +86,34 @@ DeleteOldBkgd PROC
 
     ret
 DeleteOldBkgd ENDP
+
+GetCursorWinPos PROC USES eax ebx edx, hWnd: HWND, point: PTR POINT
+    LOCAL rc: RECT
+    
+    INVOKE GetCursorPos, point
+    INVOKE GetWindowRect, hWnd, ADDR rc
+
+    mov ebx, point
+    mov eax, [ebx].POINT.x
+    mov edx, [ebx].POINT.y
+    sub eax, rc.left
+    sub edx, rc.top
+    sub eax, CURSOR_HEIGHT / 2
+    sub edx, 25 + CURSOR_WIDTH / 2
+
+    mov [ebx].POINT.x, eax
+    mov [ebx].POINT.y, edx
+
+    ret
+GetCursorWinPos ENDP
+
+SetCursorWinPos PROC USES eax, x: LONG, y: LONG
+    mov eax, x
+    mov CursorPos.x, eax
+    mov eax, y
+    mov CursorPos.y, eax
+
+    ret
+SetCursorWinPos ENDP
 
 END
