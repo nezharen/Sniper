@@ -6,21 +6,25 @@ if not exist rsrc.rc goto over1
 :over1
 
 if exist Sniper.obj del Sniper.obj
+if exist Cursor.obj del Cursor.obj
 if exist Sniper.exe del Sniper.exe
 
 \MASM32\BIN\Ml.exe /c /coff Sniper.asm
 if errorlevel 1 goto errasm
 
+\MASM32\BIN\Ml.exe /c /coff Cursor.asm
+if errorlevel 1 goto errasm
+
 if not exist rsrc.obj goto nores
 
-\MASM32\BIN\Link.exe /SUBSYSTEM:WINDOWS Sniper.obj rsrc.obj
+\MASM32\BIN\Link.exe /SUBSYSTEM:WINDOWS Sniper.obj Cursor.obj rsrc.obj
 if errorlevel 1 goto errlink
 
 dir Sniper.*
 goto TheEnd
 
 :nores
-\MASM32\BIN\Link.exe /SUBSYSTEM:WINDOWS Sniper.obj
+\MASM32\BIN\Link.exe /SUBSYSTEM:WINDOWS Sniper.obj Cursor.obj
 if errorlevel 1 goto errlink
 dir %1
 goto TheEnd
