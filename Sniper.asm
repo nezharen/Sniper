@@ -112,9 +112,20 @@ WinMain ENDP
 WinProc PROC, hWnd:HWND, localMsg:DWORD, wParam:WPARAM, lParam:LPARAM
      LOCAL xPos:DWORD, yPos:DWORD, hdc: HDC, ps: PAINTSTRUCT, hPoint: POINT,
            hCursorPoint: POINT
+     LOCAL hStatImage :DWORD  ;start define bitmap handle
+     LOCAL hStatIcon  :DWORD
+     LOCAL hIcon1 :DWORD
+     LOCAL hBmp   :DWORD      ;end define bitmap handle
 .data
      PopupTitle BYTE "Sniper", 0
      PopupText  BYTE "Fire!", 0
+     statClass db "STATIC",0 ;bitmap
+     bmpBtnCl  db "BUTTON", 0
+     icoBtnCl  db "BUTTON", 0
+     blnk      BYTE 0
+     hIco1         dd 0
+     hBtn1         dd 0
+     StartText BYTE "START", 0
 .code
      mov eax, localMsg
      .IF     eax == WM_LBUTTONDOWN
@@ -143,6 +154,30 @@ WinProc PROC, hWnd:HWND, localMsg:DWORD, wParam:WPARAM, lParam:LPARAM
      .ELSEIF eax == WM_CREATE
           INVOKE LoadCursorBitmap
           INVOKE SetTimer, hWnd, ID_TIMER, 20, NULL
+          ;start paint bitmap
+          INVOKE CreateWindowEx,WS_EX_STATICEDGE,
+            ADDR statClass,NULL,
+            WS_CHILD or WS_VISIBLE or SS_BITMAP,
+            0,0,800,600,hWnd,65535,
+            hInstance,NULL
+          mov hStatImage, eax
+          INVOKE LoadBitmap,hInstance,4
+          mov hBmp, eax 
+          INVOKE SendMessage,hStatImage,STM_SETIMAGE,IMAGE_BITMAP,hBmp
+          ;end paint bitmap
+          ;start paint start button
+          invoke CreateWindowEx,0,
+            ADDR bmpBtnCl,NULL,
+            WS_CHILD or WS_VISIBLE or BS_BITMAP or BS_FLAT or BS_TOP or BS_TEXT,
+            180,510,100,36,hWnd,3,
+            hInstance,NULL
+          mov hBtn1, eax
+          invoke LoadBitmap,hInstance,3
+          mov hIco1, eax
+          invoke SetWindowText,hBtn1,ADDR StartText
+          invoke SendMessage,hBtn1,BM_SETIMAGE,0,hIco1
+          ;end paint start button
+
      .ELSEIF eax == WM_TIMER
           INVOKE GetDC, hWnd
           mov hdc, eax
@@ -181,7 +216,7 @@ WinProc PROC, hWnd:HWND, localMsg:DWORD, wParam:WPARAM, lParam:LPARAM
           .ELSE
                 add hCursorPoint.y, ecx
           .ENDIF
-
+          ;commenting the next line will see the start page
           INVOKE RedrawMouse, hdc, hCursorPoint.x, hCursorPoint.y
 
           INVOKE ReleaseDC, hWnd, hdc
@@ -211,7 +246,7 @@ ErrorHandler PROC
      ret
 ErrorHandler ENDP
 
-;?��??��?stage表示?�卡?��?表示开始�???
+;?¨å??˜é?stageè¡¨ç¤º?³å¡?·ã€?è¡¨ç¤ºå¼€å§‹ç???
 DrawStage PROC
      ret
 DrawStage ENDP
