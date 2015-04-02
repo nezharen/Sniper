@@ -13,6 +13,7 @@ includelib \masm32\lib\gdi32.lib
 includelib \masm32\lib\user32.lib
 includelib \masm32\lib\kernel32.lib
 
+INCLUDE Cursor.inc
 
 DIED            equ 0
 DYING           equ 1
@@ -21,6 +22,7 @@ DIRECTION_LEFT  equ 0
 DIRECTION_RIGHT equ 1
 WINDOW_WIDTH    equ 800
 WINDOW_HEIGHT   equ 600
+ID_TIMER        equ 1
 
 GET_X_LPARAM MACRO lParam
      mov eax, lParam
@@ -43,17 +45,6 @@ Person ENDS
 
 DrawStage PROTO
 updateStage PROTO, hWnd:HWND, uMsg:DWORD, idEvent:DWORD, dwTime:DWORD
-
-;-----------------------------------------------------------------------------------------------------
-; Function defined in Cursor.asm
-LoadCursorBitmap PROTO
-CreateOldBkgd PROTO, hdc: HDC
-DrawMouse PROTO, hdc: HDC, x: LONG, y: LONG
-RedrawMouse PROTO, hdc: HDC, x: LONG, y: LONG
-DeleteOldBkgd PROTO
-GetCursorWinPos PROTO, hWnd: HWND, point: PTR POINT
-SetCursorWinPos PROTO, x: LONG, y: LONG
-;------------------------------------------------------------------------------------------------------
 
 .data
      stage  DWORD  0
@@ -119,7 +110,8 @@ ExitProgram:
 WinMain ENDP
 
 WinProc PROC, hWnd:HWND, localMsg:DWORD, wParam:WPARAM, lParam:LPARAM
-     LOCAL xPos:DWORD, yPos:DWORD, hdc: HDC, ps: PAINTSTRUCT, hPoint: POINT
+     LOCAL xPos:DWORD, yPos:DWORD, hdc: HDC, ps: PAINTSTRUCT, hPoint: POINT,
+           hCursorPoint: POINT
 .data
      PopupTitle BYTE "Sniper", 0
      PopupText  BYTE "Fire!", 0
@@ -138,23 +130,60 @@ WinProc PROC, hWnd:HWND, localMsg:DWORD, wParam:WPARAM, lParam:LPARAM
 
           INVOKE CreateOldBkgd, hdc
           INVOKE DrawStage
-          INVOKE GetCursorWinPos, hWnd, ADDR hPoint
-          INVOKE SetCursorWinPos, hPoint.x, hPoint.y
+          INVOKE GetMouseCursorWinPos, hWnd, ADDR hPoint
           INVOKE DrawMouse, hdc, hPoint.x, hPoint.y
 
           INVOKE EndPaint, hWnd, ADDR ps
      .ELSEIF eax == WM_CLOSE
           INVOKE DestroyWindow, hWnd
      .ELSEIF eax == WM_DESTROY
-          INVOKE PostQuitMessage, 0
           INVOKE DeleteOldBkgd
+          INVOKE KillTimer, hWnd, ID_TIMER
+          INVOKE PostQuitMessage, 0
      .ELSEIF eax == WM_CREATE
           INVOKE LoadCursorBitmap
-     .ELSEIF eax == WM_MOUSEMOVE
+          INVOKE SetTimer, hWnd, ID_TIMER, 20, NULL
+     .ELSEIF eax == WM_TIMER
           INVOKE GetDC, hWnd
           mov hdc, eax
-          INVOKE GetCursorWinPos, hWnd, ADDR hPoint
-          INVOKE RedrawMouse, hdc, hPoint.x, hPoint.y
+
+          INVOKE GetMouseCursorWinPos, hWnd, ADDR hPoint
+          INVOKE GetCursorWinPos, ADDR hCursorPoint
+          ; Calculate new x-coordinate
+          mov eax, hPoint.x
+          sub eax, hCursorPoint.x
+          cdq
+          mov ebx, 10
+          idiv ebx
+          mov ecx, eax
+          cdq
+          xor eax, edx
+          sub eax, edx
+          .IF eax < 1
+                mov eax, hPoint.x
+                mov hCursorPoint.x, eax
+          .ELSE
+                add hCursorPoint.x, ecx
+          .ENDIF
+          ; Calculate new y-coordinate
+          mov eax, hPoint.y
+          sub eax, hCursorPoint.y
+          cdq
+          mov ebx, 10
+          idiv ebx
+          mov ecx, eax
+          cdq
+          xor eax, edx
+          sub eax, edx
+          .IF eax < 1
+                mov eax, hPoint.y
+                mov hCursorPoint.y, eax
+          .ELSE
+                add hCursorPoint.y, ecx
+          .ENDIF
+
+          INVOKE RedrawMouse, hdc, hCursorPoint.x, hCursorPoint.y
+
           INVOKE ReleaseDC, hWnd, hdc
      .ENDIF
      INVOKE DefWindowProc, hWnd, localMsg, wParam, lParam

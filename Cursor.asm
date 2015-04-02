@@ -13,6 +13,8 @@ includelib \masm32\lib\gdi32.lib
 includelib \masm32\lib\user32.lib
 includelib \masm32\lib\kernel32.lib
 
+INCLUDE Cursor.inc
+
 CURSOR_HEIGHT   equ 256
 CURSOR_WIDTH    equ 256
 WINDOW_WIDTH    equ 800
@@ -23,7 +25,7 @@ CURSOR_RES_ID   equ 2
 hCursorBmp  HBITMAP ?
 hdcOldBkGd  HDC     ?
 hbmpOldBkGd HBITMAP ?
-CursorPos   POINT   <>       
+cursorPos   POINT   <>       
 
 .code
 
@@ -75,6 +77,8 @@ RedrawMouse PROC USES eax, hdc: HDC, x: LONG, y: LONG
     INVOKE DrawMouse, hdcBuffer, x, y
     INVOKE BitBlt, hdc, 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT, hdcBuffer, 0, 0, SRCCOPY
 
+    INVOKE SetCursorWinPos, x, y
+    
     INVOKE SelectObject, hdcBuffer, hbmpOldBuffer
     INVOKE DeleteDC, hdcBuffer
     
@@ -87,7 +91,7 @@ DeleteOldBkgd PROC
     ret
 DeleteOldBkgd ENDP
 
-GetCursorWinPos PROC USES eax ebx edx, hWnd: HWND, point: PTR POINT
+GetMouseCursorWinPos PROC USES eax ebx edx, hWnd: HWND, point: PTR POINT
     LOCAL rc: RECT
     
     INVOKE GetCursorPos, point
@@ -105,15 +109,25 @@ GetCursorWinPos PROC USES eax ebx edx, hWnd: HWND, point: PTR POINT
     mov [ebx].POINT.y, edx
 
     ret
-GetCursorWinPos ENDP
+GetMouseCursorWinPos ENDP
 
 SetCursorWinPos PROC USES eax, x: LONG, y: LONG
     mov eax, x
-    mov CursorPos.x, eax
+    mov cursorPos.x, eax
     mov eax, y
-    mov CursorPos.y, eax
+    mov cursorPos.y, eax
 
     ret
 SetCursorWinPos ENDP
+
+GetCursorWinPos PROC USES eax ebx, point: PTR POINT
+    mov ebx, point
+    mov eax, cursorPos.x
+    mov [ebx].POINT.x, eax
+    mov eax, cursorPos.y
+    mov [ebx].POINT.y, eax
+
+    ret
+GetCursorWinPos ENDP
 
 END
