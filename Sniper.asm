@@ -114,18 +114,16 @@ WinProc PROC, hWnd:HWND, localMsg:DWORD, wParam:WPARAM, lParam:LPARAM
            hCursorPoint: POINT
      LOCAL hStatImage :DWORD  ;start define bitmap handle
      LOCAL hStatIcon  :DWORD
-     LOCAL hIcon1 :DWORD
-     LOCAL hBmp   :DWORD      ;end define bitmap handle
+     LOCAL hBmp   :DWORD
+     LOCAL hBmp1  :DWORD      ;end define bitmap handle
 .data
      PopupTitle BYTE "Sniper", 0
      PopupText  BYTE "Fire!", 0
      statClass db "STATIC",0 ;bitmap
      bmpBtnCl  db "BUTTON", 0
-     icoBtnCl  db "BUTTON", 0
      blnk      BYTE 0
-     hIco1         dd 0
      hBtn1         dd 0
-     StartText BYTE "START", 0
+     StartText BYTE "Game Start", 0
 .code
      mov eax, localMsg
      .IF     eax == WM_LBUTTONDOWN
@@ -168,16 +166,21 @@ WinProc PROC, hWnd:HWND, localMsg:DWORD, wParam:WPARAM, lParam:LPARAM
           ;start paint start button
           invoke CreateWindowEx,0,
             ADDR bmpBtnCl,NULL,
-            WS_CHILD or WS_VISIBLE or BS_BITMAP or BS_FLAT or BS_TOP or BS_TEXT,
-            180,510,100,36,hWnd,3,
+            WS_CHILD or WS_VISIBLE or BS_BITMAP or BS_FLAT,
+            180,510,100,36,hWnd,401,
             hInstance,NULL
           mov hBtn1, eax
           invoke LoadBitmap,hInstance,3
-          mov hIco1, eax
+          mov hBmp1, eax
           invoke SetWindowText,hBtn1,ADDR StartText
-          invoke SendMessage,hBtn1,BM_SETIMAGE,0,hIco1
+          invoke SendMessage,hBtn1,BM_SETIMAGE,0,hBmp1
           ;end paint start button
-
+     .ELSEIF eax == WM_COMMAND
+          .IF wParam == 401
+          szText btnMsg1,"Game Start!"
+            invoke MessageBox,hWnd,ADDR btnMsg1,
+                              ADDR StartText,MB_OK
+          .ENDIF
      .ELSEIF eax == WM_TIMER
           INVOKE GetDC, hWnd
           mov hdc, eax
