@@ -15,11 +15,12 @@ includelib \masm32\lib\kernel32.lib
 
 INCLUDE Cursor.inc
 
-DIED            equ 0
+DEAD            equ 0
 DYING           equ 1
 ALIVE           equ 2
 DIRECTION_LEFT  equ 0
 DIRECTION_RIGHT equ 1
+HEAD_SIZE       equ 5
 WINDOW_WIDTH    equ 800
 WINDOW_HEIGHT   equ 600
 ID_TIMER        equ 1
@@ -49,14 +50,17 @@ Person STRUCT
 Person ENDS
 
 DrawStage PROTO
-updateStage PROTO
+UpdateStage PROTO
+Fire PROTO
 
 .data
      stage  DWORD  0
-     person Person <ALIVE, <0, 0>, 0, DIRECTION_RIGHT, 0, stage_0_0>, <ALIVE, <0, 0>, 0, DIRECTION_LEFT, 0, stage_0_1>
+     person Person <>, <>
      personStageSize equ ($ - person)
+            Person <ALIVE, <30, 30>, 0, DIRECTION_RIGHT, 0, stage_1_0>, <ALIVE, <40, 30>, 0, DIRECTION_LEFT, 0, stage_1_1>
             Person <>, <>
             Person <>, <>
+     personStageSum DWORD 0, 2, 2, 2
 .code
 
 WinMain PROC
@@ -118,23 +122,16 @@ WinProc PROC, hWnd:HWND, localMsg:DWORD, wParam:WPARAM, lParam:LPARAM
      LOCAL hBmp   :DWORD
      LOCAL hBmp1  :DWORD      ;end define bitmap handle
 .data
-     PopupTitle BYTE "Sniper", 0
-     PopupText  BYTE "Fire!", 0
      statClass db "STATIC",0 ;bitmap
      bmpBtnCl  db "BUTTON", 0
      blnk      BYTE 0
-     hBtn1         dd 0
+     hBtn1     DWORD 0
      StartText BYTE "Game Start", 0
 .code
      mov eax, localMsg
      .IF     eax == WM_LBUTTONDOWN
           .IF stage > 0
-               GET_X_LPARAM lParam
-               mov xPos, eax
-               GET_Y_LPARAM lParam
-               mov yPos, eax
-               INVOKE ltoa, yPos, ADDR PopupText
-               INVOKE MessageBox, hWnd, ADDR PopupText, ADDR MainWndTitle, MB_OK
+               INVOKE Fire
           .ENDIF
      .ELSEIF eax == WM_PAINT
           INVOKE BeginPaint, hWnd, ADDR ps
@@ -185,7 +182,9 @@ WinProc PROC, hWnd:HWND, localMsg:DWORD, wParam:WPARAM, lParam:LPARAM
                               ADDR StartText,MB_OK
           .ENDIF
      .ELSEIF eax == WM_TIMER
-          INVOKE updateStage
+          .IF stage > 0
+               INVOKE UpdateStage
+          .ENDIF
           INVOKE GetDC, hWnd
           mov hdc, eax
 
@@ -232,17 +231,9 @@ WinProc PROC, hWnd:HWND, localMsg:DWORD, wParam:WPARAM, lParam:LPARAM
      ret
 WinProc ENDP
 
-updateStage PROC
-     .IF stage == 1
-          call person.lpProc
-          call person[SIZEOF Person].lpProc
-     .ENDIF
-     ret
-updateStage ENDP
-
 ErrorHandler PROC
 .data
-     ErrorTitle BYTE  "Sniper"
+     ErrorTitle BYTE  "Sniper", 0
      pErrorMsg  DWORD ?
      messageID  DWORD ?
 .code
@@ -259,12 +250,79 @@ DrawStage PROC
      ret
 DrawStage ENDP
 
-stage_0_0 PROC
+UpdateStage PROC USES ebx ecx esi edi
+     call GetStagePerson
+     call GetStagePersonSum
+callAllPersonProc:
+     .IF person[ebx + esi].alive == ALIVE
+          call person[ebx + esi].lpProc
+     .ENDIF
+     add esi, TYPE person
+     loop callAllPersonProc
      ret
-stage_0_0 ENDP
+UpdateStage ENDP
 
-stage_0_1 PROC
+juagePerson PROC USES eax edx ecx edx, x:PTR Person
+     LOCAL hCursorPoint:POINT
+.data
+     killed BYTE "KILLED", 0
+     miss BYTE "Miss", 0
+.code
+     INVOKE GetCursorWinPos, ADDR hCursorPoint
+     mov ebx, x
+     mov eax, [ebx].Person.position.x
+     sub eax, hCursorPoint.x
+     imul eax
+     mov ecx, eax
+     mov eax, [ebx].Person.position.y
+     sub eax, hCursorPoint.y
+     imul eax
+     add ecx, eax
+     .IF ecx <= HEAD_SIZE * HEAD_SIZE
+          mov [ebx].Person.alive, DEAD
+          INVOKE MessageBox, NULL, ADDR killed, ADDR MainWndTitle, MB_OK
+     .ELSE
+          INVOKE MessageBox, NULL, ADDR miss, ADDR MainWndTitle, MB_OK
+     .ENDIF
      ret
-stage_0_1 ENDP
+juagePerson ENDP
+
+Fire PROC USES ebx ecx esi
+     call GetStagePerson
+     call GetStagePersonSum
+juageAllPerson:
+     .IF person[ebx + esi].alive == ALIVE
+          INVOKE juagePerson, ADDR person[ebx + esi]
+     .ENDIF
+     add esi, TYPE person
+     loop juageAllPerson
+     ret
+Fire ENDP
+
+;Uses ebx, esi to return value
+GetStagePerson PROC USES ecx
+     mov ebx, 0
+     mov ecx, stage
+setBase:
+     add ebx, personStageSize
+     loop setBase
+     mov esi, 0
+     ret
+GetStagePerson ENDP
+
+;Uses ecx to return value
+GetStagePersonSum PROC
+     mov ecx, stage
+     mov ecx, personStageSum[ecx * TYPE personStageSum]
+     ret
+GetStagePersonSum ENDP
+
+stage_1_0 PROC
+     ret
+stage_1_0 ENDP
+
+stage_1_1 PROC
+     ret
+stage_1_1 ENDP
 
 END WinMain
