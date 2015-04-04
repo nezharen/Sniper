@@ -23,6 +23,10 @@ DIRECTION_RIGHT equ 1
 WINDOW_WIDTH    equ 800
 WINDOW_HEIGHT   equ 600
 ID_TIMER        equ 1
+ID_ICON_MAIN    equ 1
+ID_BMP_CURSOR   equ 2
+ID_BMP_START    equ 3
+ID_BMP_SNIPER   equ 4
 
 GET_X_LPARAM MACRO lParam
      mov eax, lParam
@@ -40,19 +44,19 @@ Person STRUCT
      position  POINT <>
      speed     DWORD 0
      direction BYTE  0
+     hasGun    BYTE  0
      lpProc    DWORD NULL
 Person ENDS
 
 DrawStage PROTO
-updateStage PROTO, hWnd:HWND, uMsg:DWORD, idEvent:DWORD, dwTime:DWORD
+updateStage PROTO
 
 .data
      stage  DWORD  0
-     person Person <ALIVE, <0, 0>, 0, DIRECTION_RIGHT, NULL>, <ALIVE, <0, 0>, 0, DIRECTION_LEFT, NULL>
+     person Person <ALIVE, <0, 0>, 0, DIRECTION_RIGHT, 0, stage_0_0>, <ALIVE, <0, 0>, 0, DIRECTION_LEFT, 0, stage_0_1>
      personStageSize equ ($ - person)
             Person <>, <>
             Person <>, <>
-
 .code
 
 WinMain PROC
@@ -69,7 +73,7 @@ WinMain PROC
      INVOKE GetModuleHandle, NULL
      mov hInstance, eax
      mov MainWin.hInstance, eax
-     INVOKE LoadIcon, hInstance, 1
+     INVOKE LoadIcon, hInstance, ID_ICON_MAIN
      mov MainWin.hIcon, eax
      INVOKE LoadCursor, NULL, IDC_ARROW
      mov MainWin.hCursor, eax
@@ -92,9 +96,6 @@ WinMain PROC
      mov hMainWnd, eax
      INVOKE ShowWindow, hMainWnd, SW_SHOWNORMAL
      INVOKE UpdateWindow, hMainWnd
-
-;Test Timer
-     INVOKE SetTimer, hMainWnd, stage, 5000, updateStage
 
 MessageLoop:
      INVOKE GetMessage, ADDR msg, NULL, NULL, NULL
@@ -127,12 +128,14 @@ WinProc PROC, hWnd:HWND, localMsg:DWORD, wParam:WPARAM, lParam:LPARAM
 .code
      mov eax, localMsg
      .IF     eax == WM_LBUTTONDOWN
-          GET_X_LPARAM lParam
-          mov xPos, eax
-          GET_Y_LPARAM lParam
-          mov yPos, eax
-          INVOKE ltoa, yPos, ADDR PopupText
-          INVOKE MessageBox, hWnd, ADDR PopupText, ADDR MainWndTitle, MB_OK
+          .IF stage > 0
+               GET_X_LPARAM lParam
+               mov xPos, eax
+               GET_Y_LPARAM lParam
+               mov yPos, eax
+               INVOKE ltoa, yPos, ADDR PopupText
+               INVOKE MessageBox, hWnd, ADDR PopupText, ADDR MainWndTitle, MB_OK
+          .ENDIF
      .ELSEIF eax == WM_PAINT
           INVOKE BeginPaint, hWnd, ADDR ps
           mov hdc, eax
@@ -182,6 +185,7 @@ WinProc PROC, hWnd:HWND, localMsg:DWORD, wParam:WPARAM, lParam:LPARAM
                               ADDR StartText,MB_OK
           .ENDIF
      .ELSEIF eax == WM_TIMER
+          INVOKE updateStage
           INVOKE GetDC, hWnd
           mov hdc, eax
 
@@ -228,9 +232,11 @@ WinProc PROC, hWnd:HWND, localMsg:DWORD, wParam:WPARAM, lParam:LPARAM
      ret
 WinProc ENDP
 
-updateStage PROC, hWnd:HWND, uMsg:DWORD, idEvent:DWORD, dwTime:DWORD
-.code
-     
+updateStage PROC
+     .IF stage == 1
+          call person.lpProc
+          call person[SIZEOF Person].lpProc
+     .ENDIF
      ret
 updateStage ENDP
 
@@ -249,9 +255,16 @@ ErrorHandler PROC
      ret
 ErrorHandler ENDP
 
-;?¨å??˜é?stageè¡¨ç¤º?³å¡?·ã€?è¡¨ç¤ºå¼€å§‹ç???
 DrawStage PROC
      ret
 DrawStage ENDP
+
+stage_0_0 PROC
+     ret
+stage_0_0 ENDP
+
+stage_0_1 PROC
+     ret
+stage_0_1 ENDP
 
 END WinMain
