@@ -235,6 +235,7 @@ callAllPersonProc:
           mov eax, person[ebx + esi].direction
           add person[ebx + esi].position.x, eax
      .ELSEIF person[ebx + esi].alive == DYING
+          call person[ebx + esi].lpProc
           mov person[ebx + esi].alive, DEAD
      .ENDIF
      add esi, TYPE person
@@ -299,16 +300,28 @@ GetStagePersonSum ENDP
 
 stage_1_0 PROC USES ebx esi
      call GetStagePerson
-     .IF person[ebx + esi + TYPE person].alive == DEAD
-          mov person[ebx + esi].speed, 20
+     .IF person[ebx + esi].alive == ALIVE
+          .IF person[ebx + esi + TYPE person].alive == DEAD
+               mov person[ebx + esi].speed, 20
+          .ENDIF
+     .ELSE
+          .IF person[ebx + esi + TYPE person].alive == DEAD
+               mov state, STATE_SUCCESS
+          .ENDIF
      .ENDIF
      ret
 stage_1_0 ENDP
 
 stage_1_1 PROC USES ebx esi
      call GetStagePerson
-     .IF person[ebx + esi].alive == DEAD
-          mov person[ebx + esi + TYPE person].speed, 20
+     .IF person[ebx + esi + TYPE person].alive == ALIVE
+          .IF person[ebx + esi].alive == DEAD
+               mov person[ebx + esi + TYPE person].speed, 20
+          .ENDIF
+     .ELSE
+          .IF person[ebx + esi].alive == DEAD
+               mov state, STATE_SUCCESS
+          .ENDIF
      .ENDIF
      ret
 stage_1_1 ENDP

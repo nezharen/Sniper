@@ -14,3 +14,4 @@ direction：朝向，如DIRECTION_LEFT，DIRECTION_RIGHT
 hasGun：是否拿枪，为0表示不拿枪
 
 全局变量stage表示当前第几关，大于0时有效。等于0时表示当前在开始界面、规则说明界面等非关卡界面。
+全局变量state表示本关状态，STATE_RUNNING表示正在运行，STATE_FAILED表示本关失败，STATE_SUCCESS表示本关成功。
