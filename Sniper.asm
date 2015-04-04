@@ -59,6 +59,7 @@ UpdateStage PROTO
 Fire PROTO
 
 .data
+	 hBmp	HBITMAP	?
      stage  DWORD  0
      state  DWORD  STATE_RUNNING
      person Person <>, <>
@@ -122,10 +123,10 @@ WinMain ENDP
 
 WinProc PROC, hWnd:HWND, localMsg:DWORD, wParam:WPARAM, lParam:LPARAM
      LOCAL xPos:DWORD, yPos:DWORD, hdc: HDC, ps: PAINTSTRUCT, hPoint: POINT,
-           hCursorPoint: POINT
+           hCursorPoint: POINT, hdcBkGd: HDC, hdcBuffer: HDC, hbmpBuffer: HBITMAP,
+		   hbmpOldBuffer: HBITMAP, hbmpOldBkGd: HDC
      LOCAL hStatImage :DWORD  ;start define bitmap handle
      LOCAL hStatIcon  :DWORD
-     LOCAL hBmp   :DWORD
      LOCAL hBmp1  :DWORD      ;end define bitmap handle
 .data
      statClass db "STATIC",0 ;bitmap
@@ -143,32 +144,41 @@ WinProc PROC, hWnd:HWND, localMsg:DWORD, wParam:WPARAM, lParam:LPARAM
           INVOKE BeginPaint, hWnd, ADDR ps
           mov hdc, eax
 
-          INVOKE CreateOldBkgd, hdc
-          INVOKE DrawStage
-          INVOKE GetMouseCursorWinPos, hWnd, ADDR hPoint
-          INVOKE DrawMouse, hdc, hPoint.x, hPoint.y
+		  ; Create hdc of background
+          INVOKE CreateCompatibleDC, hdc
+		  mov hdcBkGd, eax
+		  INVOKE SelectObject, hdcBkGd, hBmp
+		  mov hbmpOldBkGd, eax
+		  
+		  ; Create a buffer of hdc
+		  INVOKE CreateCompatibleDC, hdc
+		  mov hdcBuffer, eax
+		  INVOKE CreateCompatibleBitmap, hdc, WINDOW_WIDTH, WINDOW_HEIGHT
+		  mov hbmpBuffer, eax
+		  INVOKE SelectObject, hdcBuffer, hbmpBuffer
+		  mov hbmpOldBuffer, eax
+		  
+		  INVOKE BitBlt, hdcBuffer, 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT, hdcBkGd, 0, 0, SRCCOPY	; draw background to buffer
+		  INVOKE GetNewCursorPos, hWnd, ADDR hCursorPoint
+		  INVOKE DrawMouse, hdcBuffer, hCursorPoint.x, hCursorPoint.y
+		  INVOKE BitBlt, hdc, 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT, hdcBuffer, 0, 0, SRCCOPY	; draw buffer to screen
+		  
+		  INVOKE SelectObject, hdcBkGd, hbmpOldBkGd
+		  INVOKE DeleteDC, hdcBkGd
+		  INVOKE SelectObject, hdcBuffer, hbmpOldBuffer
+		  INVOKE DeleteDC, hdcBuffer
 
           INVOKE EndPaint, hWnd, ADDR ps
      .ELSEIF eax == WM_CLOSE
           INVOKE DestroyWindow, hWnd
      .ELSEIF eax == WM_DESTROY
-          INVOKE DeleteOldBkgd
           INVOKE KillTimer, hWnd, ID_TIMER
           INVOKE PostQuitMessage, 0
      .ELSEIF eax == WM_CREATE
           INVOKE LoadCursorBitmap
           INVOKE SetTimer, hWnd, ID_TIMER, 20, NULL
-          ;start paint bitmap
-          INVOKE CreateWindowEx,WS_EX_STATICEDGE,
-            ADDR statClass,NULL,
-            WS_CHILD or WS_VISIBLE or SS_BITMAP,
-            0,0,800,600,hWnd,65535,
-            hInstance,NULL
-          mov hStatImage, eax
           INVOKE LoadBitmap,hInstance,4
           mov hBmp, eax 
-          INVOKE SendMessage,hStatImage,STM_SETIMAGE,IMAGE_BITMAP,hBmp
-          ;end paint bitmap
           ;start paint start button
           invoke CreateWindowEx,0,
             ADDR bmpBtnCl,NULL,
@@ -191,47 +201,7 @@ WinProc PROC, hWnd:HWND, localMsg:DWORD, wParam:WPARAM, lParam:LPARAM
           .IF stage > 0
                INVOKE UpdateStage
           .ENDIF
-          INVOKE GetDC, hWnd
-          mov hdc, eax
-
-          INVOKE GetMouseCursorWinPos, hWnd, ADDR hPoint
-          INVOKE GetCursorWinPos, ADDR hCursorPoint
-          ; Calculate new x-coordinate
-          mov eax, hPoint.x
-          sub eax, hCursorPoint.x
-          cdq
-          mov ebx, 10
-          idiv ebx
-          mov ecx, eax
-          cdq
-          xor eax, edx
-          sub eax, edx
-          .IF eax < 1
-                mov eax, hPoint.x
-                mov hCursorPoint.x, eax
-          .ELSE
-                add hCursorPoint.x, ecx
-          .ENDIF
-          ; Calculate new y-coordinate
-          mov eax, hPoint.y
-          sub eax, hCursorPoint.y
-          cdq
-          mov ebx, 10
-          idiv ebx
-          mov ecx, eax
-          cdq
-          xor eax, edx
-          sub eax, edx
-          .IF eax < 1
-                mov eax, hPoint.y
-                mov hCursorPoint.y, eax
-          .ELSE
-                add hCursorPoint.y, ecx
-          .ENDIF
-          ;commenting the next line will see the start page
-          INVOKE RedrawMouse, hdc, hCursorPoint.x, hCursorPoint.y
-
-          INVOKE ReleaseDC, hWnd, hdc
+          INVOKE InvalidateRect, hWnd, NULL, FALSE
      .ENDIF
      INVOKE DefWindowProc, hWnd, localMsg, wParam, lParam
      ret
