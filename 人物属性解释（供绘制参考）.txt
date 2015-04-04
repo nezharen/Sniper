@@ -1,10 +1,10 @@
 ﻿Person STRUCT
-     alive     BYTE  1
-     position  POINT <>
-     speed     DWORD 0
-     direction BYTE  0
-     hasGun    BYTE  0
-     lpProc    DWORD NULL
+     alive     BYTE   1
+     position  POINT  <>
+     speed     DWORD  0
+     direction SDWORD 0
+     hasGun    BYTE   0
+     lpProc    DWORD  NULL
 Person ENDS
 
 alive：当前是否死亡。有DEAD、DYING、ALIVE三个属性值，属性为DYING时请绘制迸溅的鲜血

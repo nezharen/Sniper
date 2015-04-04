@@ -21,7 +21,7 @@ ALIVE           equ 2
 STATE_RUNNING   equ 0
 STATE_FAILED    equ 1
 STATE_SUCCESS   equ 2
-DIRECTION_LEFT  equ 0
+DIRECTION_LEFT  equ -1
 DIRECTION_RIGHT equ 1
 NO_GUN          equ 0
 HAS_GUN         equ 1
@@ -46,12 +46,12 @@ GET_Y_LPARAM MACRO lParam
 ENDM
 
 Person STRUCT
-     alive     BYTE  1
-     position  POINT <>
-     speed     DWORD 0
-     direction BYTE  0
-     hasGun    BYTE  0
-     lpProc    DWORD NULL
+     alive     BYTE   1
+     position  POINT  <>
+     speed     DWORD  0
+     direction SDWORD 0
+     hasGun    BYTE   0
+     lpProc    DWORD  NULL
 Person ENDS
 
 DrawStage PROTO
@@ -226,12 +226,14 @@ DrawStage PROC
      ret
 DrawStage ENDP
 
-UpdateStage PROC USES ebx ecx esi edi
+UpdateStage PROC USES eax ebx ecx esi edi
      call GetStagePerson
      call GetStagePersonSum
 callAllPersonProc:
      .IF     person[ebx + esi].alive == ALIVE
           call person[ebx + esi].lpProc
+          mov eax, person[ebx + esi].direction
+          add person[ebx + esi].position.x, eax
      .ELSEIF person[ebx + esi].alive == DYING
           mov person[ebx + esi].alive, DEAD
      .ENDIF
@@ -295,12 +297,19 @@ GetStagePersonSum PROC
      ret
 GetStagePersonSum ENDP
 
-stage_1_0 PROC
-
+stage_1_0 PROC USES ebx esi
+     call GetStagePerson
+     .IF person[ebx + esi + TYPE person].alive == DEAD
+          mov person[ebx + esi].speed, 20
+     .ENDIF
      ret
 stage_1_0 ENDP
 
-stage_1_1 PROC
+stage_1_1 PROC USES ebx esi
+     call GetStagePerson
+     .IF person[ebx + esi].alive == DEAD
+          mov person[ebx + esi + TYPE person].speed, 20
+     .ENDIF
      ret
 stage_1_1 ENDP
 
