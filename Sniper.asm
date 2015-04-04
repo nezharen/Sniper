@@ -14,6 +14,7 @@ includelib \masm32\lib\user32.lib
 includelib \masm32\lib\kernel32.lib
 
 INCLUDE Cursor.inc
+INCLUDE DrawPage.inc
 
 DEAD            equ 0
 DYING           equ 1
@@ -59,7 +60,7 @@ UpdateStage PROTO
 Fire PROTO
 
 .data
-	 hBmp	HBITMAP	?
+	 hBmp_start	HBITMAP	?
      stage  DWORD  0
      state  DWORD  STATE_RUNNING
      person Person <>, <>
@@ -125,15 +126,8 @@ WinProc PROC, hWnd:HWND, localMsg:DWORD, wParam:WPARAM, lParam:LPARAM
      LOCAL xPos:DWORD, yPos:DWORD, hdc: HDC, ps: PAINTSTRUCT, hPoint: POINT,
            hCursorPoint: POINT, hdcBkGd: HDC, hdcBuffer: HDC, hbmpBuffer: HBITMAP,
 		   hbmpOldBuffer: HBITMAP, hbmpOldBkGd: HDC
-     LOCAL hStatImage :DWORD  ;start define bitmap handle
-     LOCAL hStatIcon  :DWORD
-     LOCAL hBmp1  :DWORD      ;end define bitmap handle
 .data
-     statClass db "STATIC",0 ;bitmap
-     bmpBtnCl  db "BUTTON", 0
-     blnk      BYTE 0
-     hBtn1     DWORD 0
-     StartText BYTE "Game Start", 0
+     hBtn_start     DWORD 0
 .code
      mov eax, localMsg
      .IF     eax == WM_LBUTTONDOWN
@@ -144,13 +138,6 @@ WinProc PROC, hWnd:HWND, localMsg:DWORD, wParam:WPARAM, lParam:LPARAM
           INVOKE BeginPaint, hWnd, ADDR ps
           mov hdc, eax
 
-		  ; Create hdc of background
-          INVOKE CreateCompatibleDC, hdc
-		  mov hdcBkGd, eax
-		  INVOKE SelectObject, hdcBkGd, hBmp
-		  mov hbmpOldBkGd, eax
-		  
-		  ; Create a buffer of hdc
 		  INVOKE CreateCompatibleDC, hdc
 		  mov hdcBuffer, eax
 		  INVOKE CreateCompatibleBitmap, hdc, WINDOW_WIDTH, WINDOW_HEIGHT
@@ -158,13 +145,12 @@ WinProc PROC, hWnd:HWND, localMsg:DWORD, wParam:WPARAM, lParam:LPARAM
 		  INVOKE SelectObject, hdcBuffer, hbmpBuffer
 		  mov hbmpOldBuffer, eax
 		  
-		  INVOKE BitBlt, hdcBuffer, 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT, hdcBkGd, 0, 0, SRCCOPY	; draw background to buffer
+            INVOKE DrawAllPage, hdc, hdcBuffer
+		  
 		  INVOKE GetNewCursorPos, hWnd, ADDR hCursorPoint
 		  INVOKE DrawMouse, hdcBuffer, hCursorPoint.x, hCursorPoint.y
 		  INVOKE BitBlt, hdc, 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT, hdcBuffer, 0, 0, SRCCOPY	; draw buffer to screen
 		  
-		  INVOKE SelectObject, hdcBkGd, hbmpOldBkGd
-		  INVOKE DeleteDC, hdcBkGd
 		  INVOKE SelectObject, hdcBuffer, hbmpOldBuffer
 		  INVOKE DeleteDC, hdcBuffer
 
@@ -177,25 +163,12 @@ WinProc PROC, hWnd:HWND, localMsg:DWORD, wParam:WPARAM, lParam:LPARAM
      .ELSEIF eax == WM_CREATE
           INVOKE LoadCursorBitmap
           INVOKE SetTimer, hWnd, ID_TIMER, 20, NULL
-          INVOKE LoadBitmap,hInstance,4
-          mov hBmp, eax 
-          ;start paint start button
-          invoke CreateWindowEx,0,
-            ADDR bmpBtnCl,NULL,
-            WS_CHILD or WS_VISIBLE or BS_BITMAP or BS_FLAT,
-            180,510,100,36,hWnd,401,
-            hInstance,NULL
-          mov hBtn1, eax
-          invoke LoadBitmap,hInstance,3
-          mov hBmp1, eax
-          invoke SetWindowText,hBtn1,ADDR StartText
-          invoke SendMessage,hBtn1,BM_SETIMAGE,0,hBmp1
-          ;end paint start button
+          
+          INVOKE DrawStartBtn, hWnd
+          
      .ELSEIF eax == WM_COMMAND
           .IF wParam == 401
-          szText btnMsg1,"Game Start!"
-            invoke MessageBox,hWnd,ADDR btnMsg1,
-                              ADDR StartText,MB_OK
+              INVOKE ModifyPageCode,1
           .ENDIF
      .ELSEIF eax == WM_TIMER
           .IF stage > 0
