@@ -18,8 +18,13 @@ INCLUDE Cursor.inc
 DEAD            equ 0
 DYING           equ 1
 ALIVE           equ 2
+STATE_RUNNING   equ 0
+STATE_FAILED    equ 1
+STATE_SUCCESS   equ 2
 DIRECTION_LEFT  equ 0
 DIRECTION_RIGHT equ 1
+NO_GUN          equ 0
+HAS_GUN         equ 1
 HEAD_SIZE       equ 5
 WINDOW_WIDTH    equ 800
 WINDOW_HEIGHT   equ 600
@@ -55,9 +60,10 @@ Fire PROTO
 
 .data
      stage  DWORD  0
+     state  DWORD  STATE_RUNNING
      person Person <>, <>
      personStageSize equ ($ - person)
-            Person <ALIVE, <30, 30>, 0, DIRECTION_RIGHT, 0, stage_1_0>, <ALIVE, <40, 30>, 0, DIRECTION_LEFT, 0, stage_1_1>
+            Person <ALIVE, <30, 30>, 0, DIRECTION_RIGHT, HAS_GUN, stage_1_0>, <ALIVE, <40, 30>, 0, DIRECTION_LEFT, HAS_GUN, stage_1_1>
             Person <>, <>
             Person <>, <>
      personStageSum DWORD 0, 2, 2, 2
@@ -254,8 +260,10 @@ UpdateStage PROC USES ebx ecx esi edi
      call GetStagePerson
      call GetStagePersonSum
 callAllPersonProc:
-     .IF person[ebx + esi].alive == ALIVE
+     .IF     person[ebx + esi].alive == ALIVE
           call person[ebx + esi].lpProc
+     .ELSEIF person[ebx + esi].alive == DYING
+          mov person[ebx + esi].alive, DEAD
      .ENDIF
      add esi, TYPE person
      loop callAllPersonProc
@@ -279,7 +287,7 @@ juagePerson PROC USES eax edx ecx edx, x:PTR Person
      imul eax
      add ecx, eax
      .IF ecx <= HEAD_SIZE * HEAD_SIZE
-          mov [ebx].Person.alive, DEAD
+          mov [ebx].Person.alive, DYING
           INVOKE MessageBox, NULL, ADDR killed, ADDR MainWndTitle, MB_OK
      .ELSE
           INVOKE MessageBox, NULL, ADDR miss, ADDR MainWndTitle, MB_OK
@@ -318,6 +326,7 @@ GetStagePersonSum PROC
 GetStagePersonSum ENDP
 
 stage_1_0 PROC
+
      ret
 stage_1_0 ENDP
 

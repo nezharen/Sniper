@@ -1,0 +1,16 @@
+Person STRUCT
+     alive     BYTE  1
+     position  POINT <>
+     speed     DWORD 0
+     direction BYTE  0
+     hasGun    BYTE  0
+     lpProc    DWORD NULL
+Person ENDS
+
+alive：当前是否死亡。有DEAD、DYING、ALIVE三个属性值，属性为DYING时请绘制迸溅的鲜血
+position：头部圆心。以此点为圆心，HEAD_SIZE为半径画圆作为头部
+speed：速度，为0表示不动；大于0时表示在走或跑，需要绘制动画效果
+direction：朝向，如DIRECTION_LEFT，DIRECTION_RIGHT
+hasGun：是否拿枪，为0表示不拿枪
+
+全局变量stage表示当前第几关，大于0时有效。等于0时表示当前在开始界面、规则说明界面等非关卡界面。
