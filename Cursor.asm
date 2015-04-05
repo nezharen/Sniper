@@ -35,7 +35,7 @@ LoadCursorBitmap PROC USES eax
     ret
 LoadCursorBitmap ENDP
 
-DrawMouse PROC USES eax edx, hdc: HDC, x: LONG, y: LONG
+DrawMouse PROC USES eax, hdc: HDC, x: LONG, y: LONG
     LOCAL hdcMem: HDC, hbmOld: HBITMAP
     
     INVOKE CreateCompatibleDC, hdc
@@ -92,47 +92,61 @@ GetCursorWinPos PROC USES eax ebx, point: PTR POINT
 GetCursorWinPos ENDP
 
 GetNewCursorPos PROC USES eax ebx ecx edx, hWnd: HWND, point: PTR POINT
-	LOCAL hPoint: POINT
+	LOCAL hPoint: POINT, signedNum: SDWORD
 
 	INVOKE GetMouseCursorWinPos, hWnd, ADDR hPoint
     ; Calculate new x-coordinate
     mov eax, hPoint.x
     sub eax, cursorPos.x
-    cdq
-    mov ebx, 10
-    idiv ebx
-    mov ecx, eax
-    cdq
-    xor eax, edx
-    sub eax, edx
-	mov ebx, point
-    .IF eax < 1
-        mov eax, hPoint.x
-        mov [ebx].POINT.x, eax
-    .ELSE
-		mov eax, cursorPos.x
+	
+	.IF eax == 0
+		mov ebx, point
+		mov eax, hPoint.x
 		mov [ebx].POINT.x, eax
-        add [ebx].POINT.x, ecx
-    .ENDIF
+	.ELSE
+		mov signedNum, eax
+		.IF (signedNum < -10) || (signedNum > 10)
+			mov ebx, 10
+			cdq
+			idiv ebx
+			mov ecx, cursorPos.x
+			add ecx, eax
+		.ELSEIF signedNum < 0
+			mov ecx, cursorPos.x
+			add ecx, -1
+		.ELSE
+			mov ecx, cursorPos.x
+			add ecx, 1
+		.ENDIF
+		mov ebx, point
+		mov [ebx].POINT.x, ecx
+	.ENDIF
     ; Calculate new y-coordinate
     mov eax, hPoint.y
     sub eax, cursorPos.y
-    cdq
-    mov ebx, 10
-    idiv ebx
-    mov ecx, eax
-    cdq
-    xor eax, edx
-    sub eax, edx
-	mov ebx, point
-    .IF eax < 1
-        mov eax, hPoint.y
-        mov [ebx].POINT.y, eax
-    .ELSE
-		mov eax, cursorPos.y
+	
+    .IF eax == 0
+		mov ebx, point
+		mov eax, hPoint.y
 		mov [ebx].POINT.y, eax
-        add [ebx].POINT.y, ecx
-    .ENDIF
+	.ELSE
+		mov signedNum, eax
+		.IF (signedNum < -10) || (eax > 10)
+			mov ebx, 10
+			cdq
+			idiv ebx
+			mov ecx, cursorPos.y
+			add ecx, eax
+		.ELSEIF signedNum < 0
+			mov ecx, cursorPos.y
+			add ecx, -1
+		.ELSE
+			mov ecx, cursorPos.y
+			add ecx, 1
+		.ENDIF
+		mov ebx, point
+		mov [ebx].POINT.y, ecx
+	.ENDIF
 
 	ret
 GetNewCursorPos ENDP
