@@ -1,5 +1,6 @@
-DrawStartPage PROTO, hdc: HDC, hdcBuffer: HDC
+LoadAllPages PROTO
+DrawStartPage PROTO, hdcBuffer: HDC
 DrawStartBtn PROTO, hWnd:HWND
-DrawModePage PROTO, hdc: HDC, hdcBuffer: HDC
-DrawAllPage PROTO, hdc: HDC, hdcBuffer: HDC
+DrawModePage PROTO, hdcBuffer: HDC
+DrawAllPage PROTO, hdcBuffer: HDC
 ModifyPageCode PROTO,newPageCode: DWORD

@@ -145,7 +145,7 @@ WinProc PROC, hWnd:HWND, localMsg:DWORD, wParam:WPARAM, lParam:LPARAM
 		  INVOKE SelectObject, hdcBuffer, hbmpBuffer
 		  mov hbmpOldBuffer, eax
 		  
-            INVOKE DrawAllPage, hdc, hdcBuffer
+          INVOKE DrawAllPage, hdcBuffer
 		  
 		  INVOKE GetNewCursorPos, hWnd, ADDR hCursorPoint
 		  INVOKE DrawMouse, hdcBuffer, hCursorPoint.x, hCursorPoint.y
@@ -153,6 +153,7 @@ WinProc PROC, hWnd:HWND, localMsg:DWORD, wParam:WPARAM, lParam:LPARAM
 		  
 		  INVOKE SelectObject, hdcBuffer, hbmpOldBuffer
 		  INVOKE DeleteDC, hdcBuffer
+		  INVOKE DeleteObject, hbmpBuffer
 
           INVOKE EndPaint, hWnd, ADDR ps
      .ELSEIF eax == WM_CLOSE
@@ -162,6 +163,7 @@ WinProc PROC, hWnd:HWND, localMsg:DWORD, wParam:WPARAM, lParam:LPARAM
           INVOKE PostQuitMessage, 0
      .ELSEIF eax == WM_CREATE
           INVOKE LoadCursorBitmap
+		  INVOKE LoadAllPages
           INVOKE SetTimer, hWnd, ID_TIMER, 20, NULL
           
           INVOKE DrawStartBtn, hWnd
