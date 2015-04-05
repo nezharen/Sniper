@@ -20,22 +20,34 @@ CURSOR_WIDTH    equ 256
 WINDOW_WIDTH    equ 800
 WINDOW_HEIGHT   equ 600
 CURSOR_RES_ID   equ 2
+MASK_1_RES_ID	equ 6
+MASK_2_RES_ID	equ 7
 
 .data
 hCursorBmp  HBITMAP ?
-cursorPos   POINT   <>       
+cursorPos   POINT   <>
+cursorMask1	HBITMAP	?
+cursorMask2	HBITMAP	?
 
 .code
 
 LoadCursorBitmap PROC USES eax
-    INVOKE GetModuleHandle, NULL
-    INVOKE LoadBitmap, eax, CURSOR_RES_ID
+	LOCAL hInstance: HINSTANCE
+    
+	INVOKE GetModuleHandle, NULL
+	mov hInstance, eax
+    
+	INVOKE LoadBitmap, hInstance, CURSOR_RES_ID
     mov hCursorBmp, eax
+	INVOKE LoadBitmap, hInstance, MASK_1_RES_ID
+	mov cursorMask1, eax
+	INVOKE LoadBitmap, hInstance, MASK_2_RES_ID
+	mov cursorMask2, eax
     
     ret
 LoadCursorBitmap ENDP
 
-DrawMouse PROC USES eax, hdc: HDC, x: LONG, y: LONG
+DrawMouse PROC USES eax edx, hdc: HDC, x: LONG, y: LONG
     LOCAL hdcMem: HDC, hbmOld: HBITMAP
     
     INVOKE CreateCompatibleDC, hdc
@@ -43,7 +55,11 @@ DrawMouse PROC USES eax, hdc: HDC, x: LONG, y: LONG
     INVOKE SelectObject, hdcMem, hCursorBmp
     mov hbmOld, eax
 
-    INVOKE BitBlt, hdc, x, y, CURSOR_WIDTH, CURSOR_HEIGHT, hdcMem, 0, 0, SRCAND
+	mov eax, x
+	sub eax, CURSOR_WIDTH / 2
+	mov edx, y
+	sub edx, CURSOR_HEIGHT / 2
+    INVOKE BitBlt, hdc, eax, edx, CURSOR_WIDTH, CURSOR_HEIGHT, hdcMem, 0, 0, SRCAND
 	INVOKE SetCursorWinPos, x, y
 	
     INVOKE SelectObject, hdcMem, hbmOld
@@ -63,8 +79,7 @@ GetMouseCursorWinPos PROC USES eax ebx edx, hWnd: HWND, point: PTR POINT
     mov edx, [ebx].POINT.y
     sub eax, rc.left
     sub edx, rc.top
-    sub eax, CURSOR_HEIGHT / 2
-    sub edx, 25 + CURSOR_WIDTH / 2
+    sub edx, 25
 
     mov [ebx].POINT.x, eax
     mov [ebx].POINT.y, edx
@@ -150,5 +165,65 @@ GetNewCursorPos PROC USES eax ebx ecx edx, hWnd: HWND, point: PTR POINT
 
 	ret
 GetNewCursorPos ENDP
+
+StretchBkgd PROC USES eax edx ecx ebx, hdc: HDC, x: LONG, y: LONG
+	LOCAL hdcMem: HDC, hdcTarget: HDC, hbmMem: HBITMAP, hbmMemOld: HBITMAP, hbmTarget: HBITMAP, hbmTargetOld: HBITMAP, hdcMask: HDC, hbmMaskOld: HBITMAP
+	
+	INVOKE CreateCompatibleDC, hdc
+	mov hdcMem, eax
+	INVOKE CreateCompatibleBitmap, hdc, CURSOR_WIDTH, CURSOR_HEIGHT
+	mov hbmMem, eax
+	INVOKE SelectObject, hdcMem, hbmMem
+	mov hbmMemOld, eax
+	
+	INVOKE CreateCompatibleDC, hdc
+	mov hdcTarget, eax
+	INVOKE CreateCompatibleBitmap, hdc, CURSOR_WIDTH, CURSOR_HEIGHT
+	mov hbmTarget, eax
+	INVOKE SelectObject, hdcTarget, hbmTarget
+	mov hbmTargetOld, eax
+	
+	INVOKE CreateCompatibleDC, hdc
+	mov hdcMask, eax
+	INVOKE SelectObject, hdcMask, cursorMask2
+	mov hbmMaskOld, eax
+
+	mov eax, x
+	mov edx, y
+	sub eax, CURSOR_WIDTH / 2
+	sub edx, CURSOR_HEIGHT / 2
+	INVOKE BitBlt, hdcTarget, 0, 0, CURSOR_WIDTH, CURSOR_HEIGHT, hdc, eax, edx, SRCCOPY	; Copy target part
+	INVOKE BitBlt, hdcTarget, 0, 0, CURSOR_WIDTH, CURSOR_HEIGHT, hdcMask, 0, 0, SRCAND	; Prune inner-circle part
+	mov eax, x
+	mov edx, y
+	sub eax, CURSOR_WIDTH / 4
+	sub edx, CURSOR_HEIGHT / 4
+	mov ebx, CURSOR_WIDTH / 2
+	mov ecx, CURSOR_HEIGHT / 2
+	INVOKE StretchBlt, hdcMem, 0, 0, CURSOR_WIDTH, CURSOR_HEIGHT, hdc, eax, edx, ebx, ecx, SRCCOPY	; Copy the part need to zoom out
+	INVOKE SelectObject, hdcMask, cursorMask1
+	INVOKE BitBlt, hdcMem, 0, 0, CURSOR_WIDTH, CURSOR_HEIGHT, hdcMask, 0, 0, SRCAND	; Prune outer-circle part
+	
+	INVOKE BitBlt, hdcTarget, 0, 0, CURSOR_WIDTH, CURSOR_HEIGHT, hdcMem, 0, 0, SRCPAINT	; Combine two pictures
+
+	mov eax, x
+	mov edx, y
+	sub eax, CURSOR_WIDTH / 2
+	sub edx, CURSOR_HEIGHT / 2
+	INVOKE BitBlt, hdc, eax, edx, CURSOR_WIDTH, CURSOR_HEIGHT, hdcTarget, 0, 0, SRCCOPY
+	
+	INVOKE SelectObject, hdcMem, hbmMemOld
+	INVOKE DeleteDC, hdcMem
+	INVOKE DeleteObject, hbmMem
+	
+	INVOKE SelectObject, hdcTarget, hbmTargetOld
+	INVOKE DeleteDC, hdcTarget
+	INVOKE DeleteObject, hbmTarget
+	
+	INVOKE SelectObject, hdcMask, hbmMaskOld
+	INVOKE DeleteDC, hdcMask
+
+	ret
+StretchBkgd ENDP
 
 END

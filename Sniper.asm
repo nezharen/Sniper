@@ -148,6 +148,7 @@ WinProc PROC, hWnd:HWND, localMsg:DWORD, wParam:WPARAM, lParam:LPARAM
           INVOKE DrawAllPage, hdcBuffer
 		  
 		  INVOKE GetNewCursorPos, hWnd, ADDR hCursorPoint
+		  INVOKE StretchBkgd, hdcBuffer, hCursorPoint.x, hCursorPoint.y
 		  INVOKE DrawMouse, hdcBuffer, hCursorPoint.x, hCursorPoint.y
 		  INVOKE BitBlt, hdc, 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT, hdcBuffer, 0, 0, SRCCOPY	; draw buffer to screen
 		  
