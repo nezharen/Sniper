@@ -15,7 +15,7 @@ includelib \masm32\lib\kernel32.lib
 
 INCLUDE Cursor.inc
 INCLUDE DrawPage.inc
-
+INCLUDE DrawPerson.inc
 DEAD            equ 0
 DYING           equ 1
 ALIVE           equ 2
@@ -146,6 +146,9 @@ WinProc PROC, hWnd:HWND, localMsg:DWORD, wParam:WPARAM, lParam:LPARAM
 		  mov hbmpOldBuffer, eax
 		  
           INVOKE DrawAllPage, hdcBuffer
+		  INVOKE DrawSimplePerson, hdcBuffer, 400,300
+          
+
 		  
 		  INVOKE GetNewCursorPos, hWnd, ADDR hCursorPoint
 		  INVOKE StretchBkgd, hdcBuffer, hCursorPoint.x, hCursorPoint.y
