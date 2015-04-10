@@ -146,7 +146,7 @@ WinProc PROC, hWnd:HWND, localMsg:DWORD, wParam:WPARAM, lParam:LPARAM
 		  mov hbmpOldBuffer, eax
 		  
           INVOKE DrawAllPage, hdcBuffer
-		  INVOKE DrawSimplePerson, hdcBuffer, 400,300
+		  INVOKE DrawStandPerson, hdcBuffer, 400,300
           
 
 		  

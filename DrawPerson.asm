@@ -17,35 +17,42 @@ INCLUDE DrawPerson.inc
 
 PERSON_HEAD_RADIUS equ 5
 PERSON_TRUNK_LENGTH equ 10
-PERSON_TRUNK_WIDTH equ 2
+PERSON_TRUNK_WIDTH equ 4
 PERSON_ARM_LENGTH equ 10
-PERSON_ARM_WIDTH equ 2
+PERSON_ARM_WIDTH equ 4
 PERSON_LEG_LENGTH equ 15
-PERSON_LEG_WIDTH equ 2
+PERSON_LEG_WIDTH equ 4
+
+STAND_TRUNK_DEGREE equ 180
+STAND_LEG_RIGHT_DEGREE equ 200
+STAND_LEG_LEFT_DEGREE equ 170
 .data
 
 .code
 
-DrawSimplePerson PROC USES eax ebx, hdcbuffer:HDC, headcenter_x:DWORD, headcenter_y:DWORD
-           LOCAL neckpointx:DWORD,neckpointy:DWORD,waistpointx:DWORD,waistpointy:DWORD
+DrawStandPerson PROC USES eax ebx, hdcbuffer:HDC, headcenter_x:DWORD, headcenter_y:DWORD
+           LOCAL neckpointx:DWORD,neckpointy:DWORD,waistpointx:DWORD,waistpointy:DWORD,stTime:SYSTEMTIME
     
     INVOKE DrawHead,hdcbuffer,headcenter_x,headcenter_y
 
     mov eax,headcenter_y
     add eax,PERSON_HEAD_RADIUS
     mov neckpointy,eax
-    INVOKE DrawTrunk,hdcbuffer,headcenter_x,neckpointy,180
-    INVOKE DrawArm,hdcbuffer,headcenter_x,neckpointy,210
+    INVOKE DrawTrunk,hdcbuffer,headcenter_x,neckpointy,STAND_TRUNK_DEGREE
+    
+    INVOKE GetLocalTime,ADDR stTime
+
+    INVOKE DrawArm,hdcbuffer,headcenter_x,neckpointy,stTime.wMilliseconds
     INVOKE DrawArm,hdcbuffer,headcenter_x,neckpointy,150
 
     mov eax,neckpointy
     add eax,PERSON_TRUNK_LENGTH
     mov waistpointy,eax
-    INVOKE DrawLeg,hdcbuffer,headcenter_x,waistpointy,200
-    INVOKE DrawLeg,hdcbuffer,headcenter_x,waistpointy,170
+    INVOKE DrawLeg,hdcbuffer,headcenter_x,waistpointy,STAND_LEG_RIGHT_DEGREE
+    INVOKE DrawLeg,hdcbuffer,headcenter_x,waistpointy,STAND_LEG_LEFT_DEGREE
 
     ret
-DrawSimplePerson ENDP
+DrawStandPerson ENDP
 
 DrawHead PROC USES eax ebx ecx edx,hdcbuffer:HDC,headcenter_X:DWORD,headcenter_Y:DWORD
     LOCAL hbrush:HBRUSH
