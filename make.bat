@@ -1,8 +1,10 @@
 @echo off
 
 if not exist rsrc.rc goto over1
+if exist rsrc.obj del rsrc.obj
+if exist rsrc.RES del rsrc.RES
 \MASM32\BIN\Rc.exe /v rsrc.rc
-\MASM32\BIN\Cvtres.exe /machine:ix86 rsrc.res
+\MASM32\BIN\Cvtres.exe /machine:ix86 rsrc.RES
 :over1
 
 if exist Sniper.obj del Sniper.obj
