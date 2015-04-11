@@ -22,8 +22,8 @@ PERSON_ARM_LENGTH equ 10
 PERSON_ARM_WIDTH equ 4
 PERSON_LEG_LENGTH equ 15
 PERSON_LEG_WIDTH equ 4
-PERSON_FOOT_LENGTH equ 5
-PERSON_FOOT_WIDTH equ 2
+PERSON_FOOT_LENGTH equ 4
+PERSON_FOOT_WIDTH equ 3
 
 STAND_TRUNK_DEGREE equ 180
 STAND_LEG_RIGHT_DEGREE equ 200
@@ -67,7 +67,7 @@ DrawStandPerson PROC USES eax ebx, hdcbuffer:HDC, headcenter_x:DWORD, headcenter
         .ELSEIF
             movzx ebx,al
             mov eax,STAND_ARM_RIGHT_STATIC_DEGREE
-            add eax,25
+            add eax,50
             sub eax,ebx
             INVOKE DrawArm,hdcbuffer,headcenter_x,neckpointy,eax
         .ENDIF
@@ -85,10 +85,18 @@ DrawStandPerson PROC USES eax ebx, hdcbuffer:HDC, headcenter_x:DWORD, headcenter
     INVOKE DrawLeg,hdcbuffer,waistpointx,waistpointy,STAND_LEG_RIGHT_DEGREE
     INVOKE DrawLeg,hdcbuffer,waistpointx,waistpointy,STAND_LEG_LEFT_DEGREE
     
-    mov eax,waistpointx
+    INVOKE CalcX, STAND_LEG_RIGHT_DEGREE,PERSON_LEG_LENGTH,waistpointx
     mov anklex,eax
-    mov eax,waistpointy
+    INVOKE CalcY, STAND_LEG_RIGHT_DEGREE,PERSON_LEG_LENGTH,waistpointy
+    mov ankley,eax
+    INVOKE DrawFoot,hdcbuffer,anklex,ankley,270
     
+    INVOKE CalcX, STAND_LEG_LEFT_DEGREE,PERSON_LEG_LENGTH,waistpointx
+    mov anklex,eax
+    INVOKE CalcY, STAND_LEG_LEFT_DEGREE,PERSON_LEG_LENGTH,waistpointy
+    mov ankley,eax
+    INVOKE DrawFoot,hdcbuffer,anklex,ankley,270
+
     ret
 DrawStandPerson ENDP
 
