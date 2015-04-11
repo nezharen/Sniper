@@ -23,8 +23,8 @@ STATE_RUNNING   equ 0
 STATE_FAILED    equ 1
 STATE_SUCCESS   equ 2
 SPEED_NULL      equ 0
-SPEED_WALK      equ 10
-SPEED_RUN       equ 20
+SPEED_WALK      equ 1
+SPEED_RUN       equ 2
 DIRECTION_LEFT  equ -1
 DIRECTION_RIGHT equ 1
 NO_GUN          equ 0
@@ -205,6 +205,7 @@ callAllPersonProc:
      .IF     person[ebx + esi].alive == ALIVE
           call person[ebx + esi].lpProc
           mov eax, person[ebx + esi].direction
+          imul person[ebx + esi].speed
           add person[ebx + esi].position.x, eax
      .ELSEIF person[ebx + esi].alive == DYING
           call person[ebx + esi].lpProc
@@ -212,6 +213,9 @@ callAllPersonProc:
      .ENDIF
      add esi, TYPE person
      loop callAllPersonProc
+     .IF state != STATE_RUNNING
+          mov stage, 0
+     .ENDIF
      ret
 UpdateStage ENDP
 
@@ -274,10 +278,10 @@ stage_1_0 PROC USES ebx esi
      call GetStagePerson
      .IF person[ebx + esi].alive == ALIVE
           .IF person[ebx + esi + TYPE person].alive == DEAD
-               mov person[ebx + esi].speed, 20
+               mov person[ebx + esi].speed, SPEED_RUN
           .ENDIF
      .ELSE
-          .IF person[ebx + esi + TYPE person].alive == DEAD
+          .IF person[ebx + esi + TYPE person].alive != ALIVE
                mov state, STATE_SUCCESS
           .ENDIF
      .ENDIF
@@ -288,10 +292,10 @@ stage_1_1 PROC USES ebx esi
      call GetStagePerson
      .IF person[ebx + esi + TYPE person].alive == ALIVE
           .IF person[ebx + esi].alive == DEAD
-               mov person[ebx + esi + TYPE person].speed, 20
+               mov person[ebx + esi + TYPE person].speed, SPEED_RUN
           .ENDIF
      .ELSE
-          .IF person[ebx + esi].alive == DEAD
+          .IF person[ebx + esi].alive != ALIVE
                mov state, STATE_SUCCESS
           .ENDIF
      .ENDIF
@@ -299,14 +303,54 @@ stage_1_1 PROC USES ebx esi
 stage_1_1 ENDP
 
 stage_2_0 PROC USES ebx esi
+     call GetStagePerson
+     .IF person[ebx + esi].alive == ALIVE
+          .IF (person[ebx + esi + TYPE person].alive != ALIVE) || (person[ebx + esi + 2 * TYPE person].alive != ALIVE)
+               mov state, STATE_FAILED
+          .ENDIF
+     .ELSE
+          .IF (person[ebx + esi + TYPE person].alive != ALIVE) && (person[ebx + esi + 2 * TYPE person].alive != ALIVE)
+               mov state, STATE_SUCCESS
+          .ENDIF
+     .ENDIF
      ret
 stage_2_0 ENDP
 
 stage_2_1 PROC USES ebx esi
+     call GetStagePerson
+     .IF person[ebx + esi + TYPE person].alive == ALIVE
+          .IF person[ebx + esi + 2 * TYPE person].alive != ALIVE
+               mov state, STATE_FAILED
+          .ENDIF
+     .ELSE
+          .IF (person[ebx + esi].alive != ALIVE) && (person[ebx + esi + 2 * TYPE person].alive != ALIVE)
+               mov state, STATE_SUCCESS
+          .ENDIF
+     .ENDIF
      ret
 stage_2_1 ENDP
 
 stage_2_2 PROC USES ebx esi
+     call GetStagePerson
+     .IF person[ebx + esi + 2 * TYPE person].alive == ALIVE
+          .IF person[ebx + esi + 2 * TYPE person].direction == DIRECTION_LEFT
+               .IF (person[ebx + esi].alive != ALIVE) || (person[ebx + esi + TYPE person].alive != ALIVE)
+                    mov state, STATE_FAILED
+               .ELSE
+                    .IF person[ebx + esi + 2 * TYPE person].position.x <= 400
+                         mov person[ebx + esi + 2 * TYPE person].direction, DIRECTION_RIGHT
+                    .ENDIF
+               .ENDIF
+          .ELSE
+               .IF person[ebx + esi + 2 * TYPE person].position.x >= 500
+                    mov person[ebx + esi + 2 * TYPE person].direction, DIRECTION_LEFT
+               .ENDIF
+          .ENDIF
+     .ELSE
+          .IF (person[ebx + esi].alive != ALIVE) && (person[ebx + esi + TYPE person].alive != ALIVE)
+               mov state, STATE_SUCCESS
+          .ENDIF
+     .ENDIF
      ret
 stage_2_2 ENDP
 
