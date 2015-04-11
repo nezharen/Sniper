@@ -31,15 +31,23 @@ STAND_LEG_LEFT_DEGREE equ 170
 STAND_ARM_LEFT_STATIC_DEGREE equ 150
 STAND_ARM_RIGHT_STATIC_DEGREE equ 210
 
-STAND_ARM_MOVE_PERIOD equ 5 ;右胳膊每隔几秒钟动一次
+STAND_ARM_MOVE_PERIOD equ 1 ;右胳膊每隔几秒钟动一次
 STAND_ARM_MOVE_DEGREE_RANGE equ 20 ;胳膊的幅度
+
+REFRESH_PERIOD equ 20
+REFRESH_HALF_FRAME equ 25
+REFRESH_FRAME equ 50
+
+ROTATE_LINE_SPEED_ONE equ 1 ; for normal speed
+ROTATE_LINE_SPEED_TWO equ 6 ; for high speed
+
 
 .data
 dwPara180  DWORD  180
 .code
 
 DrawStandPerson PROC USES eax ebx, hdcbuffer:HDC, headcenter_x:DWORD, headcenter_y:DWORD
-           LOCAL neckpointx:DWORD,neckpointy:DWORD,waistpointx:DWORD,waistpointy:DWORD,anklex:DWORD,ankley:DWORD,stTime:SYSTEMTIME
+           LOCAL neckpointx:DWORD, neckpointy:DWORD, waistpointx:DWORD, waistpointy:DWORD, anklex:DWORD, ankley:DWORD,stTime:SYSTEMTIME
     
     INVOKE DrawHead,hdcbuffer,headcenter_x,headcenter_y
 
@@ -56,26 +64,12 @@ DrawStandPerson PROC USES eax ebx, hdcbuffer:HDC, headcenter_x:DWORD, headcenter
     div bl
 
     .IF ah == 0
-        mov ax, stTime.wMilliseconds
-        mov bl, STAND_ARM_MOVE_DEGREE_RANGE
-        div bl
-        
-        .IF al < 25
-            add al, STAND_ARM_RIGHT_STATIC_DEGREE
-            movzx ebx,al
-            INVOKE DrawArm,hdcbuffer,headcenter_x,neckpointy,ebx
-        .ELSEIF
-            movzx ebx,al
-            mov eax,STAND_ARM_RIGHT_STATIC_DEGREE
-            add eax,50
-            sub eax,ebx
-            INVOKE DrawArm,hdcbuffer,headcenter_x,neckpointy,eax
-        .ENDIF
+        INVOKE DrawArm,hdcbuffer,headcenter_x,neckpointy,105,2
     .ELSEIF
-        INVOKE DrawArm,hdcbuffer,headcenter_x,neckpointy,STAND_ARM_RIGHT_STATIC_DEGREE
+        INVOKE DrawArm,hdcbuffer,headcenter_x,neckpointy,105,0
     .ENDIF
 
-    INVOKE DrawArm,hdcbuffer,neckpointx,neckpointy,STAND_ARM_LEFT_STATIC_DEGREE
+    INVOKE DrawArm,hdcbuffer,neckpointx,neckpointy,STAND_ARM_LEFT_STATIC_DEGREE,0
     
     mov eax,neckpointy
     add eax,PERSON_TRUNK_LENGTH
@@ -125,33 +119,77 @@ DrawHead ENDP
 
 DrawTrunk PROC USES eax,hdcbuffer:HDC,trunktop_x:DWORD,trunktop_y:DWORD,degree:DWORD
     
-    INVOKE DrawRotateLine,hdcbuffer,trunktop_x,trunktop_y,PERSON_TRUNK_LENGTH,PERSON_TRUNK_WIDTH,degree
+    INVOKE DrawDegreeLine,hdcbuffer,trunktop_x,trunktop_y,PERSON_TRUNK_LENGTH,PERSON_TRUNK_WIDTH,degree
 
     ret
 DrawTrunk ENDP
 
-DrawArm PROC,hdcbuffer:HDC,armtop_x:DWORD,armtop_y:DWORD,degree:DWORD
-    
-    INVOKE DrawRotateLine,hdcbuffer,armtop_x,armtop_y,PERSON_ARM_LENGTH,PERSON_ARM_WIDTH,degree
-
+;armtype: 0 for still, 1 for move in a normal speed, 2 for mov in a high speed
+DrawArm PROC,hdcbuffer:HDC,armtop_x:DWORD,armtop_y:DWORD,degree:DWORD,armtype:DWORD
+    .IF armtype == 0
+        INVOKE DrawDegreeLine,hdcbuffer,armtop_x,armtop_y,PERSON_ARM_LENGTH,PERSON_ARM_WIDTH,degree
+    .ELSE
+        INVOKE DrawRotateLine,hdcbuffer,armtop_x,armtop_y,PERSON_ARM_LENGTH,PERSON_ARM_WIDTH,degree,armtype
+    .ENDIF
     ret
 DrawArm ENDP
 
 DrawLeg PROC,hdcbuffer:HDC,legtop_x:DWORD,legtop_y:DWORD,degree:DWORD
 
-    INVOKE DrawRotateLine,hdcbuffer,legtop_x,legtop_y,PERSON_LEG_LENGTH,PERSON_LEG_WIDTH,degree
+    INVOKE DrawDegreeLine,hdcbuffer,legtop_x,legtop_y,PERSON_LEG_LENGTH,PERSON_LEG_WIDTH,degree
 
     ret
 DrawLeg ENDP
 
 DrawFoot PROC,hdcbuffer:HDC,foottop_x:DWORD,foottop_y:DWORD,degree:DWORD
     
-    INVOKE DrawRotateLine,hdcbuffer,foottop_x,foottop_y,PERSON_FOOT_LENGTH,PERSON_FOOT_WIDTH,degree
+    INVOKE DrawDegreeLine,hdcbuffer,foottop_x,foottop_y,PERSON_FOOT_LENGTH,PERSON_FOOT_WIDTH,degree
 
     ret
 DrawFoot ENDP
 
-DrawRotateLine PROC USES eax,hdcbuffer:HDC,centerX:DWORD,centerY:DWORD,radius:DWORD,linewidth:DWORD,degree:DWORD
+DrawRotateLine PROC USES eax ebx,hdcbuffer:HDC,centerX:DWORD,centerY:DWORD,radius:DWORD,linewidth:DWORD,startdegree:DWORD,rotatespeed:DWORD
+    LOCAL stTime:SYSTEMTIME, rotateRange:DWORD, DrotateRange:DWORD, rotateCoefficient:DWORD
+
+    .IF rotatespeed == 1
+        mov rotateCoefficient,ROTATE_LINE_SPEED_ONE
+    .ELSEIF rotatespeed == 2
+        mov rotateCoefficient,ROTATE_LINE_SPEED_TWO
+    .ENDIF
+    
+    mov eax, REFRESH_FRAME
+    mov ebx, rotateCoefficient
+    mul ebx
+    mov DrotateRange,eax
+
+
+    INVOKE GetLocalTime,ADDR stTime
+    mov ax, stTime.wMilliseconds
+    mov bl, REFRESH_PERIOD
+    div bl
+    
+    .IF al < REFRESH_HALF_FRAME
+        movzx ebx,al
+        mov eax,ebx
+        mov ebx,rotateCoefficient
+        mul ebx
+        add eax, startdegree
+        INVOKE DrawDegreeLine,hdcbuffer,centerX,centerY,radius,linewidth,eax
+    .ELSEIF
+        movzx ebx,al
+        mov eax,ebx
+        mov ebx,rotateCoefficient
+        mul ebx
+        mov ebx,startdegree
+        add ebx,DrotateRange
+        sub ebx,eax
+        INVOKE DrawDegreeLine,hdcbuffer,centerX,centerY,radius,linewidth,ebx
+    .ENDIF
+
+    ret
+DrawRotateLine ENDP
+
+DrawDegreeLine PROC USES eax,hdcbuffer:HDC,centerX:DWORD,centerY:DWORD,radius:DWORD,linewidth:DWORD,degree:DWORD
     LOCAL hpen:HPEN,linePointX:DWORD,linePointY:DWORD,holdObject:HGDIOBJ
 
     INVOKE CreatePen, PS_SOLID,linewidth,00h
@@ -171,7 +209,7 @@ DrawRotateLine PROC USES eax,hdcbuffer:HDC,centerX:DWORD,centerY:DWORD,radius:DW
     INVOKE SelectObject,hdcbuffer,holdObject
     INVOKE DeleteObject,eax
     ret
-DrawRotateLine ENDP
+DrawDegreeLine ENDP
 
 ;calculate-rotate line-the other point-value x
 CalcX PROC,dwDegree:DWORD,dwRadius:DWORD,dwCenterX:DWORD
