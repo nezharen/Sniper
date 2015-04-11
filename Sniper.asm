@@ -22,6 +22,9 @@ ALIVE           equ 2
 STATE_RUNNING   equ 0
 STATE_FAILED    equ 1
 STATE_SUCCESS   equ 2
+SPEED_NULL      equ 0
+SPEED_WALK      equ 10
+SPEED_RUN       equ 20
 DIRECTION_LEFT  equ -1
 DIRECTION_RIGHT equ 1
 NO_GUN          equ 0
@@ -34,17 +37,6 @@ ID_ICON_MAIN    equ 1
 ID_BMP_CURSOR   equ 2
 ID_BMP_START    equ 3
 ID_BMP_SNIPER   equ 4
-
-GET_X_LPARAM MACRO lParam
-     mov eax, lParam
-     and eax, 0FFFFh
-ENDM
-
-GET_Y_LPARAM MACRO lParam
-     mov eax, lParam
-     shr eax, 16
-     and eax, 0FFFFh
-ENDM
 
 Person STRUCT
      alive     BYTE   1
@@ -60,15 +52,16 @@ UpdateStage PROTO
 Fire PROTO
 
 .data
-	 hBmp_start	HBITMAP	?
+	hBmp_start	HBITMAP	?
      stage  DWORD  0
      state  DWORD  STATE_RUNNING
-     person Person <>, <>
+     person Person <>, <>, <>
      personStageSize equ ($ - person)
-            Person <ALIVE, <30, 30>, 0, DIRECTION_RIGHT, HAS_GUN, stage_1_0>, <ALIVE, <40, 30>, 0, DIRECTION_LEFT, HAS_GUN, stage_1_1>
-            Person <>, <>
-            Person <>, <>
-     personStageSum DWORD 0, 2, 2, 2
+            Person <ALIVE, <30, 30>, SPEED_NULL, DIRECTION_RIGHT, NO_GUN, stage_1_0>, <ALIVE, <40, 30>, SPEED_NULL, DIRECTION_LEFT, NO_GUN, stage_1_1>, <>
+            Person <ALIVE, <100, 300>, SPEED_NULL, DIRECTION_RIGHT, HAS_GUN, stage_2_0>, <ALIVE, <300, 300>, SPEED_NULL, DIRECTION_RIGHT, HAS_GUN, stage_2_1>,
+                   <ALIVE, <500, 300>, SPEED_WALK, DIRECTION_LEFT, HAS_GUN, stage_2_2>
+            Person <>, <>, <>
+     personStageSum DWORD 0, 2, 3, 3
 .code
 
 WinMain PROC
@@ -304,5 +297,17 @@ stage_1_1 PROC USES ebx esi
      .ENDIF
      ret
 stage_1_1 ENDP
+
+stage_2_0 PROC USES ebx esi
+     ret
+stage_2_0 ENDP
+
+stage_2_1 PROC USES ebx esi
+     ret
+stage_2_1 ENDP
+
+stage_2_2 PROC USES ebx esi
+     ret
+stage_2_2 ENDP
 
 END WinMain
