@@ -26,8 +26,12 @@ PERSON_LEG_WIDTH equ 4
 STAND_TRUNK_DEGREE equ 180
 STAND_LEG_RIGHT_DEGREE equ 200
 STAND_LEG_LEFT_DEGREE equ 170
-.data
+STAND_ARM_LEFT_STATIC_DEGREE equ 150
+STAND_ARM_RIGHT_STATIC_DEGREE equ 210
+STAND_ARM_MOVE_PERIOD equ 5 ;右胳膊每隔几秒钟动一次
 
+.data
+dwPara180  DWORD  180
 .code
 
 DrawStandPerson PROC USES eax ebx, hdcbuffer:HDC, headcenter_x:DWORD, headcenter_y:DWORD
@@ -41,10 +45,20 @@ DrawStandPerson PROC USES eax ebx, hdcbuffer:HDC, headcenter_x:DWORD, headcenter
     INVOKE DrawTrunk,hdcbuffer,headcenter_x,neckpointy,STAND_TRUNK_DEGREE
     
     INVOKE GetLocalTime,ADDR stTime
+    mov ax, stTime.wSecond
+    mov bl, STAND_ARM_MOVE_PERIOD
+    div bl
 
-    INVOKE DrawArm,hdcbuffer,headcenter_x,neckpointy,stTime.wMilliseconds
-    INVOKE DrawArm,hdcbuffer,headcenter_x,neckpointy,150
+    .IF ah == 0
+        mov ax, stTime.wMilliseconds
 
+        INVOKE DrawArm,hdcbuffer,headcenter_x,neckpointy,stTime.wMilliseconds
+    .ELSEIF
+        INVOKE DrawArm,hdcbuffer,headcenter_x,neckpointy,STAND_ARM_RIGHT_STATIC_DEGREE
+    .ENDIF
+
+    INVOKE DrawArm,hdcbuffer,headcenter_x,neckpointy,STAND_ARM_LEFT_STATIC_DEGREE
+    
     mov eax,neckpointy
     add eax,PERSON_TRUNK_LENGTH
     mov waistpointy,eax
@@ -55,12 +69,12 @@ DrawStandPerson PROC USES eax ebx, hdcbuffer:HDC, headcenter_x:DWORD, headcenter
 DrawStandPerson ENDP
 
 DrawHead PROC USES eax ebx ecx edx,hdcbuffer:HDC,headcenter_X:DWORD,headcenter_Y:DWORD
-    LOCAL hbrush:HBRUSH
+    LOCAL hbrush:HBRUSH, holdObject:HGDIOBJ
     
     INVOKE GetStockObject,BLACK_BRUSH
     mov hbrush,eax
     INVOKE SelectObject,hdcbuffer,hbrush
-    INVOKE DeleteObject,eax
+    mov holdObject,eax
 
     mov eax, headcenter_X
     sub eax, PERSON_HEAD_RADIUS
@@ -71,6 +85,9 @@ DrawHead PROC USES eax ebx ecx edx,hdcbuffer:HDC,headcenter_X:DWORD,headcenter_Y
     mov edx, headcenter_Y
     add edx, PERSON_HEAD_RADIUS
     INVOKE Ellipse,hdcbuffer,eax,ebx,ecx,edx
+    
+    INVOKE SelectObject,hdcbuffer,holdObject
+    INVOKE DeleteObject,eax
     ret
 DrawHead ENDP
 
@@ -96,12 +113,12 @@ DrawLeg PROC,hdcbuffer:HDC,legtop_x:DWORD,legtop_y:DWORD,degree:DWORD
 DrawLeg ENDP
 
 DrawRotateLine PROC USES eax,hdcbuffer:HDC,centerX:DWORD,centerY:DWORD,radius:DWORD,linewidth:DWORD,degree:DWORD
-    LOCAL hpen:HPEN,linePointX:DWORD,linePointY:DWORD
+    LOCAL hpen:HPEN,linePointX:DWORD,linePointY:DWORD,holdObject:HGDIOBJ
 
     INVOKE CreatePen, PS_SOLID,linewidth,00h
     mov hpen, eax
     INVOKE SelectObject,hdcbuffer,hpen
-    INVOKE DeleteObject,eax
+    mov holdObject, eax
     
     INVOKE MoveToEx,hdcbuffer,centerX,centerY,NULL
 
@@ -111,11 +128,13 @@ DrawRotateLine PROC USES eax,hdcbuffer:HDC,centerX:DWORD,centerY:DWORD,radius:DW
     mov linePointY, eax
     
     INVOKE LineTo,hdcbuffer,linePointX,linePointY
+
+    INVOKE SelectObject,hdcbuffer,holdObject
+    INVOKE DeleteObject,eax
     ret
 DrawRotateLine ENDP
 
 ;calculate-rotate line-the other point-value x
-dwPara180  DWORD  180
 CalcX PROC,dwDegree:DWORD,dwRadius:DWORD,dwCenterX:DWORD
         local   @dwReturn
 
