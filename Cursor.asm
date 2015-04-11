@@ -68,21 +68,11 @@ DrawMouse PROC USES eax edx, hdc: HDC, x: LONG, y: LONG
     ret
 DrawMouse ENDP
 
-GetMouseCursorWinPos PROC USES eax ebx edx, hWnd: HWND, point: PTR POINT
+GetMouseCursorWinPos PROC, hWnd: HWND, point: PTR POINT
     LOCAL rc: RECT
     
     INVOKE GetCursorPos, point
-    INVOKE GetWindowRect, hWnd, ADDR rc
-
-    mov ebx, point
-    mov eax, [ebx].POINT.x
-    mov edx, [ebx].POINT.y
-    sub eax, rc.left
-    sub edx, rc.top
-    sub edx, 25
-
-    mov [ebx].POINT.x, eax
-    mov [ebx].POINT.y, edx
+	INVOKE ScreenToClient, hWnd, point
 
     ret
 GetMouseCursorWinPos ENDP
@@ -146,7 +136,7 @@ GetNewCursorPos PROC USES eax ebx ecx edx, hWnd: HWND, point: PTR POINT
 		mov [ebx].POINT.y, eax
 	.ELSE
 		mov signedNum, eax
-		.IF (signedNum < -10) || (eax > 10)
+		.IF (signedNum < -10) || (signedNum > 10)
 			mov ebx, 10
 			cdq
 			idiv ebx
@@ -154,7 +144,7 @@ GetNewCursorPos PROC USES eax ebx ecx edx, hWnd: HWND, point: PTR POINT
 			add ecx, eax
 		.ELSEIF signedNum < 0
 			mov ecx, cursorPos.y
-			add ecx, -1
+			sub ecx, 1
 		.ELSE
 			mov ecx, cursorPos.y
 			add ecx, 1
