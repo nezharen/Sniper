@@ -47,7 +47,7 @@ Person STRUCT
      lpProc    DWORD  NULL
 Person ENDS
 
-DrawStage PROTO
+DrawStage PROTO, hdcBuffer: HDC
 UpdateStage PROTO
 Fire PROTO
 
@@ -80,8 +80,7 @@ WinMain PROC
      mov MainWin.hInstance, eax
      INVOKE LoadIcon, hInstance, ID_ICON_MAIN
      mov MainWin.hIcon, eax
-     INVOKE LoadCursor, NULL, IDC_ARROW
-     mov MainWin.hCursor, eax
+     INVOKE ShowCursor, FALSE
 
      INVOKE RegisterClass, ADDR MainWin
      .IF eax == 0
@@ -116,8 +115,8 @@ ExitProgram:
 WinMain ENDP
 
 WinProc PROC, hWnd:HWND, localMsg:DWORD, wParam:WPARAM, lParam:LPARAM
-     LOCAL xPos:DWORD, yPos:DWORD, hdc: HDC, ps: PAINTSTRUCT, hPoint: POINT,
-           hCursorPoint: POINT, hdcBkGd: HDC, hdcBuffer: HDC, hbmpBuffer: HBITMAP,
+     LOCAL hCursorPoint: POINT, hdcBkGd: HDC, hdcBuffer: HDC, hbmpBuffer: HBITMAP,
+           xPos:DWORD, yPos:DWORD, hdc: HDC, ps: PAINTSTRUCT, hPoint: POINT,
 		   hbmpOldBuffer: HBITMAP, hbmpOldBkGd: HDC
 .data
      hBtn_start     DWORD 0
@@ -138,14 +137,11 @@ WinProc PROC, hWnd:HWND, localMsg:DWORD, wParam:WPARAM, lParam:LPARAM
 		  INVOKE SelectObject, hdcBuffer, hbmpBuffer
 		  mov hbmpOldBuffer, eax
 		  
-          INVOKE DrawAllPage, hdcBuffer
-		  INVOKE DrawStandPerson, hdcBuffer, 400,300
-          
-
+		  INVOKE DrawStage, hdcBuffer
 		  
 		  INVOKE GetNewCursorPos, hWnd, ADDR hCursorPoint
-		  INVOKE StretchBkgd, hdcBuffer, hCursorPoint.x, hCursorPoint.y
 		  INVOKE DrawMouse, hdcBuffer, hCursorPoint.x, hCursorPoint.y
+		  
 		  INVOKE BitBlt, hdc, 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT, hdcBuffer, 0, 0, SRCCOPY	; draw buffer to screen
 		  
 		  INVOKE SelectObject, hdcBuffer, hbmpOldBuffer
@@ -194,8 +190,10 @@ ErrorHandler PROC
      ret
 ErrorHandler ENDP
 
-DrawStage PROC
-     ret
+DrawStage PROC USES eax ecx, hdcBuffer: HDC
+	INVOKE DrawAllPage, hdcBuffer
+	INVOKE DrawStandPerson, hdcBuffer, 400,300
+    ret
 DrawStage ENDP
 
 UpdateStage PROC USES eax ebx ecx esi edi

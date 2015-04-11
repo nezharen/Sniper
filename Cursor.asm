@@ -50,6 +50,8 @@ LoadCursorBitmap ENDP
 DrawMouse PROC USES eax edx, hdc: HDC, x: LONG, y: LONG
     LOCAL hdcMem: HDC, hbmOld: HBITMAP
     
+	INVOKE StretchBkgd, hdc, x, y
+	
     INVOKE CreateCompatibleDC, hdc
     mov hdcMem, eax
     INVOKE SelectObject, hdcMem, hCursorBmp
@@ -68,8 +70,7 @@ DrawMouse PROC USES eax edx, hdc: HDC, x: LONG, y: LONG
     ret
 DrawMouse ENDP
 
-GetMouseCursorWinPos PROC, hWnd: HWND, point: PTR POINT
-    LOCAL rc: RECT
+GetMouseCursorWinPos PROC USES eax, hWnd: HWND, point: PTR POINT
     
     INVOKE GetCursorPos, point
 	INVOKE ScreenToClient, hWnd, point
@@ -118,7 +119,7 @@ GetNewCursorPos PROC USES eax ebx ecx edx, hWnd: HWND, point: PTR POINT
 			add ecx, eax
 		.ELSEIF signedNum < 0
 			mov ecx, cursorPos.x
-			add ecx, -1
+			sub ecx, 1
 		.ELSE
 			mov ecx, cursorPos.x
 			add ecx, 1
