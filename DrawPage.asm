@@ -17,13 +17,19 @@ INCLUDE Window.inc
 INCLUDE DrawPage.inc
 
 .data
-PAGE_CODE DWORD 0
-statClass db "STATIC",0 ;bitmap
-bmpBtnCl  db "BUTTON", 0
-hbtn_start DWORD 0
+PAGE_CODE 		DWORD 	0
+statClass 		db 		"STATIC",0 ;bitmap
+bmpBtnCl  		db 		"BUTTON", 0
+hbtn_start		DWORD 	0
 hBmp_start		HBITMAP	?
 hbmp_start_btn	HBITMAP	?
 hBmp			HBITMAP	?
+hBtnStage1		HWND	?
+hBtnStage2		HWND	?
+hBtnStage3		HWND	?
+hBmpBtnStage1	HBITMAP	?
+hBmpBtnStage2	HBITMAP	?
+hBmpBtnStage3	HBITMAP	?
 
 .code
 
@@ -41,6 +47,15 @@ LoadAllPages PROC USES eax
 	
 	INVOKE LoadBitmap, hInstance, PAGE_CHOOSE_MODE_BACK
     mov hBmp, eax 
+	
+	INVOKE LoadBitmap, hInstance, STAGE_BTN_1
+	mov hBmpBtnStage1, eax
+	
+	INVOKE LoadBitmap, hInstance, STAGE_BTN_2
+	mov hBmpBtnStage2, eax
+	
+	INVOKE LoadBitmap, hInstance, STAGE_BTN_3
+	mov hBmpBtnStage3, eax
 
 	ret
 LoadAllPages ENDP
@@ -60,20 +75,40 @@ DrawStartPage PROC USES eax edx, hdcBuffer: HDC
     ret
 DrawStartPage ENDP
  
-DrawStartBtn PROC, hWnd:HWND
-    LOCAL hInstance: HINSTANCE
-    
+DrawStartBtn PROC USES eax, hWnd:HWND
     INVOKE CreateWindowEx,0,
         ADDR bmpBtnCl,NULL,
-            WS_CHILD or WS_VISIBLE or BS_BITMAP or BS_FLAT,
-            180,510,100,36,hWnd,401,
-            hInstance,NULL
+        WS_CHILD or WS_VISIBLE or BS_BITMAP or BS_FLAT,
+        180,510,BUTTON_WIDTH,BUTTON_HEIGHT,hWnd,401,
+        NULL,NULL
     mov hbtn_start, eax
 
     INVOKE SendMessage,hbtn_start,BM_SETIMAGE,0,hbmp_start_btn
-    mov eax,hbtn_start
+	
     ret
 DrawStartBtn ENDP
+
+CreateStageSelectMenu PROC USES eax, hWnd: HWND
+	INVOKE CreateWindowEx, 0, ADDR bmpBtnCl, NULL, WS_CHILD or WS_VISIBLE or BS_BITMAP or BS_FLAT, 550, 120, BUTTON_WIDTH, BUTTON_HEIGHT, hWnd, 501, NULL, NULL
+	mov hBtnStage1, eax
+	INVOKE SendMessage, hBtnStage1, BM_SETIMAGE, 0, hBmpBtnStage1
+	
+	INVOKE CreateWindowEx, 0, ADDR bmpBtnCl, NULL, WS_CHILD or WS_VISIBLE or BS_BITMAP or BS_FLAT, 550, 170, BUTTON_WIDTH, BUTTON_HEIGHT, hWnd, 502, NULL, NULL
+	mov hBtnStage2, eax
+	INVOKE SendMessage, hBtnStage2, BM_SETIMAGE, 0, hBmpBtnStage2
+	
+	INVOKE CreateWindowEx, 0, ADDR bmpBtnCl, NULL, WS_CHILD or WS_VISIBLE or BS_BITMAP or BS_FLAT, 550, 220, BUTTON_WIDTH, BUTTON_HEIGHT, hWnd, 503, NULL, NULL
+	mov hBtnStage3, eax
+	INVOKE SendMessage, hBtnStage3, BM_SETIMAGE, 0, hBmpBtnStage3
+	
+	ret
+CreateStageSelectMenu ENDP
+
+DestroyStartBtn PROC USES eax
+	INVOKE DestroyWindow, hbtn_start
+
+	ret
+DestroyStartBtn ENDP
 
 DrawModePage PROC USES eax edx, hdcBuffer: HDC
     LOCAL hdcBkGd: HDC, hbmpOldBkGd: HBITMAP
