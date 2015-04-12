@@ -15,12 +15,6 @@ includelib \masm32\lib\kernel32.lib
 
 INCLUDE DrawPage.inc
 
-WINDOW_WIDTH    equ 800
-WINDOW_HEIGHT   equ 600
-PAGE_START_BACK equ 4
-PAGE_START_BTN  equ 3
-PAGE_CHOOSE_MODE_BACK equ 5
-
 .data
 PAGE_CODE DWORD 0
 statClass db "STATIC",0 ;bitmap
