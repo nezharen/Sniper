@@ -23,7 +23,6 @@ UpdateStage PROTO
 Fire PROTO
 
 .data
-	hBmp_start	HBITMAP	?
      stage  DWORD  0
      state  DWORD  STATE_RUNNING
      person Person <>, <>, <>, <>
