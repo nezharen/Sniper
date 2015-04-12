@@ -11,7 +11,6 @@ DIRECTION_LEFT  equ -1
 DIRECTION_RIGHT equ 1
 NO_GUN          equ 0
 HAS_GUN         equ 1
-HEAD_SIZE       equ 5
 ID_TIMER        equ 1
 ID_ICON_MAIN    equ 1
 ID_BMP_CURSOR   equ 2

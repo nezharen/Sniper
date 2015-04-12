@@ -13,6 +13,7 @@ includelib \masm32\lib\gdi32.lib
 includelib \masm32\lib\user32.lib
 includelib \masm32\lib\kernel32.lib
 
+INCLUDE Window.inc
 INCLUDE DrawPage.inc
 
 .data

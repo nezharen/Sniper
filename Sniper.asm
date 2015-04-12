@@ -204,7 +204,7 @@ juagePerson PROC USES eax edx ecx edx, x:PTR Person
      sub eax, hCursorPoint.y
      imul eax
      add ecx, eax
-     .IF ecx <= HEAD_SIZE * HEAD_SIZE
+     .IF ecx <= PERSON_HEAD_RADIUS * PERSON_HEAD_RADIUS
           mov [ebx].Person.alive, DYING
           INVOKE MessageBox, NULL, ADDR killed, ADDR MainWndTitle, MB_OK
      .ELSE
