@@ -165,7 +165,8 @@ ErrorHandler ENDP
 
 DrawStage PROC USES eax ecx, hdcBuffer: HDC
 	INVOKE DrawAllPage, hdcBuffer
-	INVOKE DrawStandPerson, hdcBuffer, 400,300
+	INVOKE DrawStandPerson, hdcBuffer, 400,300,DIRECTION_RIGHT
+     INVOKE DrawStandPerson, hdcBuffer, 200,300,DIRECTION_LEFT
     ret
 DrawStage ENDP
 

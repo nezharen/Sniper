@@ -14,14 +14,15 @@ includelib \masm32\lib\user32.lib
 includelib \masm32\lib\kernel32.lib
 
 INCLUDE DrawPerson.inc
+INCLUDE Sniper.inc
 
 .data
 dwPara180  DWORD  180
 
 .code
 
-DrawStandPerson PROC USES eax ebx, hdcbuffer:HDC, headcenter_x:DWORD, headcenter_y:DWORD
-           LOCAL neckpointx:DWORD, neckpointy:DWORD, waistpointx:DWORD, waistpointy:DWORD, anklex:DWORD, ankley:DWORD,stTime:SYSTEMTIME
+DrawStandPerson PROC USES eax ebx, hdcbuffer:HDC, headcenter_x:DWORD, headcenter_y:DWORD, direction:DWORD
+           LOCAL neckpointx:DWORD, neckpointy:DWORD, waistpointx:DWORD, waistpointy:DWORD, stTime:SYSTEMTIME
     
     INVOKE DrawHead,hdcbuffer,headcenter_x,headcenter_y
 
@@ -47,14 +48,14 @@ DrawStandPerson PROC USES eax ebx, hdcbuffer:HDC, headcenter_x:DWORD, headcenter
         INVOKE DrawArm,hdcbuffer,neckpointx,neckpointy,205,1,ROTATE_DIRECTION_ANTICLOCKWISE
         INVOKE DrawArm,hdcbuffer,neckpointx,neckpointy,155,1,ROTATE_DIRECTION_CLOCKWISE
 
-        INVOKE DrawLeg,hdcbuffer,waistpointx,waistpointy,155,1,ROTATE_DIRECTION_CLOCKWISE
-        INVOKE DrawLeg,hdcbuffer,waistpointx,waistpointy,205,1,ROTATE_DIRECTION_ANTICLOCKWISE
+        INVOKE DrawLeg,hdcbuffer,waistpointx,waistpointy,155,1,ROTATE_DIRECTION_CLOCKWISE,direction
+        INVOKE DrawLeg,hdcbuffer,waistpointx,waistpointy,205,1,ROTATE_DIRECTION_ANTICLOCKWISE,direction
     .ELSEIF
         INVOKE DrawArm,hdcbuffer,neckpointx,neckpointy,212,0,ROTATE_DIRECTION_NULL
         INVOKE DrawArm,hdcbuffer,neckpointx,neckpointy,147,0,ROTATE_DIRECTION_NULL
 
-        INVOKE DrawLeg,hdcbuffer,waistpointx,waistpointy,147,0,ROTATE_DIRECTION_NULL
-        INVOKE DrawLeg,hdcbuffer,waistpointx,waistpointy,212,0,ROTATE_DIRECTION_NULL
+        INVOKE DrawLeg,hdcbuffer,waistpointx,waistpointy,147,0,ROTATE_DIRECTION_NULL,direction
+        INVOKE DrawLeg,hdcbuffer,waistpointx,waistpointy,212,0,ROTATE_DIRECTION_NULL,direction
     .ENDIF
     
     ret
@@ -100,10 +101,24 @@ DrawArm PROC,hdcbuffer:HDC,armtop_x:DWORD,armtop_y:DWORD,degree:DWORD,armspeed:D
     ret
 DrawArm ENDP
 
-DrawLeg PROC,hdcbuffer:HDC,legtop_x:DWORD,legtop_y:DWORD,degree:DWORD,legspeed:DWORD,legRotateDirection:DWORD
-    LOCAL anklex:DWORD, ankley:DWORD, leg_degree:DWORD
+DrawLeg PROC,hdcbuffer:HDC,legtop_x:DWORD,legtop_y:DWORD,degree:DWORD,legspeed:DWORD,legRotateDirection:DWORD, direction:DWORD
+    LOCAL anklex:DWORD, ankley:DWORD, leg_degree:DWORD, foot_direction:DWORD
+    
+    .IF direction == DIRECTION_LEFT
+        mov eax, STAND_FOOT_DIRECTION_LEFT
+    .ELSEIF direction == DIRECTION_RIGHT
+        mov eax, STAND_FOOT_DIRECTION_RIGHT
+    .ENDIF
+    mov foot_direction, eax
+
     .IF legspeed == 0
         INVOKE DrawDegreeLine,hdcbuffer,legtop_x,legtop_y,PERSON_LEG_LENGTH,PERSON_LEG_WIDTH,degree
+
+        INVOKE CalcX, degree,PERSON_LEG_LENGTH,legtop_x
+        mov anklex, eax
+        INVOKE CalcY, degree,PERSON_LEG_LENGTH,legtop_y
+        mov ankley, eax
+        INVOKE DrawFoot,hdcbuffer,anklex,ankley,foot_direction
     .ELSE
         INVOKE DrawRotateLine,hdcbuffer,legtop_x,legtop_y,PERSON_LEG_LENGTH,PERSON_LEG_WIDTH,degree,legspeed,legRotateDirection
 
@@ -112,7 +127,7 @@ DrawLeg PROC,hdcbuffer:HDC,legtop_x:DWORD,legtop_y:DWORD,degree:DWORD,legspeed:D
         mov anklex, eax
         INVOKE CalcY, leg_degree,PERSON_LEG_LENGTH,legtop_y
         mov ankley, eax
-        INVOKE DrawFoot,hdcbuffer,anklex,ankley,270
+        INVOKE DrawFoot,hdcbuffer,anklex,ankley,foot_direction
 
     .ENDIF
     ret
