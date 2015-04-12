@@ -146,16 +146,19 @@ WinProc PROC, hWnd:HWND, localMsg:DWORD, wParam:WPARAM, lParam:LPARAM
 			  INVOKE ModifyPageCode, 11
 			  INVOKE DestroyStartBtn
 			  mov stage, 1
+			  mov state, STATE_RUNNING
 			  INVOKE ShowCursor, FALSE
 		  .ELSEIF wParam == 403	; Start stage 2
 			  INVOKE ModifyPageCode, 21
 			  INVOKE DestroyStartBtn
-			  mov stage, 1
+			  mov stage, 2
+			  mov state, STATE_RUNNING
 			  INVOKE ShowCursor, FALSE
 		  .ELSEIF wParam == 404	; Start stage 3
 			  INVOKE ModifyPageCode, 31
 			  INVOKE DestroyStartBtn
-			  mov stage, 1
+			  mov stage, 3
+			  mov state, STATE_RUNNING
 			  INVOKE ShowCursor, FALSE
 		  .ELSEIF wParam == 501	; Go to stage 1
 			  INVOKE ModifyPageCode, 10
