@@ -15,14 +15,6 @@ includelib \masm32\lib\kernel32.lib
 
 INCLUDE Cursor.inc
 
-CURSOR_HEIGHT   equ 256
-CURSOR_WIDTH    equ 256
-WINDOW_WIDTH    equ 800
-WINDOW_HEIGHT   equ 600
-CURSOR_RES_ID   equ 2
-MASK_1_RES_ID	equ 6
-MASK_2_RES_ID	equ 7
-
 .data
 hCursorBmp  HBITMAP ?
 cursorPos   POINT   <>
