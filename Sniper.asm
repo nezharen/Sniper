@@ -28,7 +28,7 @@ Fire PROTO
      state  DWORD  STATE_RUNNING
      person Person <>, <>, <>, <>
      personStageSize equ ($ - person)
-            Person <ALIVE, <30, 30>, SPEED_NULL, DIRECTION_RIGHT, NO_GUN, stage_1_0>, <ALIVE, <40, 30>, SPEED_NULL, DIRECTION_LEFT, NO_GUN, stage_1_1>, <>, <>
+            Person <ALIVE, <150, 180>, SPEED_NULL, DIRECTION_RIGHT, NO_GUN, stage_1_0>, <ALIVE, <200, 180>, SPEED_NULL, DIRECTION_LEFT, NO_GUN, stage_1_1>, <>, <>
             Person <ALIVE, <100, 300>, SPEED_NULL, DIRECTION_RIGHT, HAS_GUN, stage_2_0>, <ALIVE, <300, 300>, SPEED_NULL, DIRECTION_RIGHT, HAS_GUN, stage_2_1>,
                    <ALIVE, <500, 300>, SPEED_WALK, DIRECTION_LEFT, HAS_GUN, stage_2_2>, <>
             Person <ALIVE, <50, 300>, SPEED_WALK, DIRECTION_RIGHT, HAS_GUN, stage_3_0>, <ALIVE, <750, 300>, SPEED_WALK, DIRECTION_LEFT, HAS_GUN, stage_3_1>,
