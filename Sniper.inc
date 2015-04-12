@@ -13,9 +13,6 @@ NO_GUN          equ 0
 HAS_GUN         equ 1
 ID_TIMER        equ 1
 ID_ICON_MAIN    equ 1
-ID_BMP_CURSOR   equ 2
-ID_BMP_START    equ 3
-ID_BMP_SNIPER   equ 4
 
 Person STRUCT
      alive     BYTE   1

@@ -32,7 +32,7 @@ Fire PROTO
             Person <ALIVE, <100, 300>, SPEED_NULL, DIRECTION_RIGHT, HAS_GUN, stage_2_0>, <ALIVE, <300, 300>, SPEED_NULL, DIRECTION_RIGHT, HAS_GUN, stage_2_1>,
                    <ALIVE, <500, 300>, SPEED_WALK, DIRECTION_LEFT, HAS_GUN, stage_2_2>, <>
             Person <ALIVE, <50, 300>, SPEED_WALK, DIRECTION_RIGHT, HAS_GUN, stage_3_0>, <ALIVE, <750, 300>, SPEED_WALK, DIRECTION_LEFT, HAS_GUN, stage_3_1>,
-                   <ALIVE, <390, 300>, SPEED_NULL, DIRECTION_RIGHT, NO_GUN, stage_3_2>, <ALIVE, <410, 300>, SPEED_NULL, DIRECTION_LEFT, NO_GUN, stage_3_3>
+                   <ALIVE, <375, 300>, SPEED_NULL, DIRECTION_RIGHT, NO_GUN, stage_3_2>, <ALIVE, <425, 300>, SPEED_NULL, DIRECTION_LEFT, NO_GUN, stage_3_3>
      personStageSum DWORD 0, 2, 3, 4
 
 .code
