@@ -29,9 +29,9 @@ Fire PROTO
      personStageSize equ ($ - person)
             Person <ALIVE, <150, 180>, SPEED_NULL, DIRECTION_RIGHT, NO_GUN, stage_1_0>, <ALIVE, <200, 180>, SPEED_NULL, DIRECTION_LEFT, NO_GUN, stage_1_1>, <>, <>
             Person <ALIVE, <100, 300>, SPEED_NULL, DIRECTION_RIGHT, HAS_GUN, stage_2_0>, <ALIVE, <300, 300>, SPEED_NULL, DIRECTION_RIGHT, HAS_GUN, stage_2_1>,
-                   <ALIVE, <500, 300>, SPEED_WALK, DIRECTION_LEFT, HAS_GUN, stage_2_2>, <>
-            Person <ALIVE, <50, 300>, SPEED_WALK, DIRECTION_RIGHT, HAS_GUN, stage_3_0>, <ALIVE, <750, 300>, SPEED_WALK, DIRECTION_LEFT, HAS_GUN, stage_3_1>,
-                   <ALIVE, <375, 300>, SPEED_NULL, DIRECTION_RIGHT, NO_GUN, stage_3_2>, <ALIVE, <425, 300>, SPEED_NULL, DIRECTION_LEFT, NO_GUN, stage_3_3>
+                   <ALIVE, <700, 300>, SPEED_WALK, DIRECTION_LEFT, HAS_GUN, stage_2_2>, <>
+            Person <ALIVE, <50, 350>, SPEED_WALK, DIRECTION_RIGHT, HAS_GUN, stage_3_0>, <ALIVE, <750, 350>, SPEED_WALK, DIRECTION_LEFT, HAS_GUN, stage_3_1>,
+                   <ALIVE, <375, 350>, SPEED_NULL, DIRECTION_RIGHT, NO_GUN, stage_3_2>, <ALIVE, <425, 350>, SPEED_NULL, DIRECTION_LEFT, NO_GUN, stage_3_3>
      personStageSum DWORD 0, 2, 3, 4
      person1 Person <ALIVE, <400, 300>, SPEED_WALK, DIRECTION_RIGHT, NO_GUN, stage_1_0>
      person2 Person <ALIVE, <200, 300>, SPEED_NULL, DIRECTION_RIGHT, NO_GUN, stage_1_0>
@@ -238,11 +238,8 @@ callAllPersonProc:
      ret
 UpdateStage ENDP
 
-juagePerson PROC USES eax edx ecx edx, x:PTR Person
+juagePerson PROC USES eax ebx ecx edx, x:PTR Person
      LOCAL hCursorPoint:POINT
-.data
-     killed BYTE "KILLED", 0
-     miss BYTE "Miss", 0
 .code
      INVOKE GetCursorWinPos, ADDR hCursorPoint
      mov ebx, x
@@ -256,9 +253,6 @@ juagePerson PROC USES eax edx ecx edx, x:PTR Person
      add ecx, eax
      .IF ecx <= PERSON_HEAD_RADIUS * PERSON_HEAD_RADIUS
           mov [ebx].Person.alive, DYING
-          INVOKE MessageBox, NULL, ADDR killed, ADDR MainWndTitle, MB_OK
-     .ELSE
-          INVOKE MessageBox, NULL, ADDR miss, ADDR MainWndTitle, MB_OK
      .ENDIF
      ret
 juagePerson ENDP
@@ -367,7 +361,7 @@ stage_2_2 PROC USES ebx esi
                     .ENDIF
                .ENDIF
           .ELSE
-               .IF person[ebx + esi + 2 * TYPE person].position.x >= 500
+               .IF person[ebx + esi + 2 * TYPE person].position.x >= 700
                     mov person[ebx + esi + 2 * TYPE person].direction, DIRECTION_LEFT
                .ENDIF
           .ENDIF
