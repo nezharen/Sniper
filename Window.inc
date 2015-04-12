@@ -1,0 +1,2 @@
+WINDOW_WIDTH    equ 800
+WINDOW_HEIGHT   equ 600
