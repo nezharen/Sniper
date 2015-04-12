@@ -26,13 +26,15 @@ Fire PROTO
 	hBmp_start	HBITMAP	?
      stage  DWORD  0
      state  DWORD  STATE_RUNNING
-     person Person <>, <>, <>
+     person Person <>, <>, <>, <>
      personStageSize equ ($ - person)
-            Person <ALIVE, <30, 30>, SPEED_NULL, DIRECTION_RIGHT, NO_GUN, stage_1_0>, <ALIVE, <40, 30>, SPEED_NULL, DIRECTION_LEFT, NO_GUN, stage_1_1>, <>
+            Person <ALIVE, <30, 30>, SPEED_NULL, DIRECTION_RIGHT, NO_GUN, stage_1_0>, <ALIVE, <40, 30>, SPEED_NULL, DIRECTION_LEFT, NO_GUN, stage_1_1>, <>, <>
             Person <ALIVE, <100, 300>, SPEED_NULL, DIRECTION_RIGHT, HAS_GUN, stage_2_0>, <ALIVE, <300, 300>, SPEED_NULL, DIRECTION_RIGHT, HAS_GUN, stage_2_1>,
-                   <ALIVE, <500, 300>, SPEED_WALK, DIRECTION_LEFT, HAS_GUN, stage_2_2>
-            Person <>, <>, <>
-     personStageSum DWORD 0, 2, 3, 3
+                   <ALIVE, <500, 300>, SPEED_WALK, DIRECTION_LEFT, HAS_GUN, stage_2_2>, <>
+            Person <ALIVE, <50, 300>, SPEED_WALK, DIRECTION_RIGHT, HAS_GUN, stage_3_0>, <ALIVE, <750, 300>, SPEED_WALK, DIRECTION_LEFT, HAS_GUN, stage_3_1>,
+                   <ALIVE, <390, 300>, SPEED_NULL, DIRECTION_RIGHT, NO_GUN, stage_3_2>, <ALIVE, <410, 300>, SPEED_NULL, DIRECTION_LEFT, NO_GUN, stage_3_3>
+     personStageSum DWORD 0, 2, 3, 4
+
 .code
 
 WinMain PROC
@@ -248,6 +250,9 @@ stage_1_0 PROC USES ebx esi
      .IF person[ebx + esi].alive == ALIVE
           .IF person[ebx + esi + TYPE person].alive == DEAD
                mov person[ebx + esi].speed, SPEED_RUN
+               .IF person[ebx + esi].position.x >= 795
+                    mov state, STATE_FAILED
+               .ENDIF
           .ENDIF
      .ELSE
           .IF person[ebx + esi + TYPE person].alive != ALIVE
@@ -262,6 +267,9 @@ stage_1_1 PROC USES ebx esi
      .IF person[ebx + esi + TYPE person].alive == ALIVE
           .IF person[ebx + esi].alive == DEAD
                mov person[ebx + esi + TYPE person].speed, SPEED_RUN
+               .IF person[ebx + esi + TYPE person].position.x <= 5
+                    mov state, STATE_FAILED
+               .ENDIF
           .ENDIF
      .ELSE
           .IF person[ebx + esi].alive != ALIVE
@@ -322,5 +330,75 @@ stage_2_2 PROC USES ebx esi
      .ENDIF
      ret
 stage_2_2 ENDP
+
+stage_3_0 PROC USES ebx esi
+     call GetStagePerson
+     .IF person[ebx + esi].alive == ALIVE
+          .IF person[ebx + esi].direction == DIRECTION_RIGHT
+               .IF person[ebx + esi].position.x >= 150
+                    mov person[ebx + esi].direction, DIRECTION_LEFT
+               .ENDIF
+          .ELSE
+               .IF person[ebx + esi].position.x <= 50
+                    mov person[ebx + esi].direction, DIRECTION_RIGHT
+               .ENDIF
+          .ENDIF
+     .ELSE
+          mov state, STATE_FAILED
+     .ENDIF
+     ret
+stage_3_0 ENDP
+
+stage_3_1 PROC USES ebx esi
+     call GetStagePerson
+     .IF person[ebx + esi + TYPE person].alive == ALIVE
+          .IF person[ebx + esi + TYPE person].direction == DIRECTION_LEFT
+               .IF person[ebx + esi + TYPE person].position.x <= 650
+                    mov person[ebx + esi + TYPE person].direction, DIRECTION_RIGHT
+               .ENDIF
+          .ELSE
+               .IF person[ebx + esi + TYPE person].position.x >= 750
+                    mov person[ebx + esi + TYPE person].direction, DIRECTION_LEFT
+               .ENDIF
+          .ENDIF
+     .ELSE
+          mov state, STATE_FAILED
+     .ENDIF
+     ret
+stage_3_1 ENDP
+
+stage_3_2 PROC USES ebx esi
+     call GetStagePerson
+     .IF person[ebx + esi + 2 * TYPE person].alive == ALIVE
+          .IF person[ebx + esi + 3 * TYPE person].alive == DEAD
+               mov person[ebx + esi + 2 * TYPE person].speed, SPEED_RUN
+               .IF person[ebx + esi + 2 * TYPE person].position.x >= 500
+                    mov state, STATE_FAILED
+               .ENDIF
+          .ENDIF
+     .ELSE
+          .IF person[ebx + esi + 3 * TYPE person].alive != ALIVE
+               mov state, STATE_SUCCESS
+          .ENDIF
+     .ENDIF
+     ret
+stage_3_2 ENDP
+
+stage_3_3 PROC USES ebx esi
+     call GetStagePerson
+     .IF person[ebx + esi + 3 * TYPE person].alive == ALIVE
+          .IF person[ebx + esi + 2 * TYPE person].alive == DEAD
+               mov person[ebx + esi + 3 * TYPE person].speed, SPEED_RUN
+               .IF person[ebx + esi + 3 * TYPE person].position.x <= 300
+                    mov state, STATE_FAILED
+               .ENDIF
+          .ENDIF
+     .ELSE
+          .IF person[ebx + esi + 2 * TYPE person].alive != ALIVE
+               mov state, STATE_SUCCESS
+          .ENDIF
+     .ENDIF
+     ret
+stage_3_3 ENDP
 
 END WinMain
