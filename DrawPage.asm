@@ -17,25 +17,30 @@ INCLUDE Window.inc
 INCLUDE DrawPage.inc
 
 .data
-PAGE_CODE 		DWORD 	0
-statClass 		db 		"STATIC",0 ;bitmap
-bmpBtnCl  		db 		"BUTTON", 0
-hbtn_start		DWORD 	0
-hBmp_start		HBITMAP	?
-hbmp_start_btn	HBITMAP	?
-hBmp			HBITMAP	?
-hBtnStage1		HWND	?
-hBtnStage2		HWND	?
-hBtnStage3		HWND	?
-hBmpBtnStage1	HBITMAP	?
-hBmpBtnStage2	HBITMAP	?
-hBmpBtnStage3	HBITMAP	?
-hBmpStage1		HBITMAP ?
-hBmpStage2		HBITMAP ?
-hBmpStage3		HBITMAP ?
-hBmpIntro1		HBITMAP ?
-hBmpIntro2		HBITMAP ?
-hBmpIntro3		HBITMAP ?
+PAGE_CODE 			DWORD 	0
+previousPageCode	DWORD	?
+statClass 			db 		"STATIC",0 ;bitmap
+bmpBtnCl  			db 		"BUTTON", 0
+hbtn_start			DWORD 	0
+hBmp_start			HBITMAP	?
+hbmp_start_btn		HBITMAP	?
+hBmp				HBITMAP	?
+hBtnStage1			HWND	?
+hBtnStage2			HWND	?
+hBtnStage3			HWND	?
+hBmpBtnStage1		HBITMAP	?
+hBmpBtnStage2		HBITMAP	?
+hBmpBtnStage3		HBITMAP	?
+hBmpStage1			HBITMAP ?
+hBmpStage2			HBITMAP ?
+hBmpStage3			HBITMAP ?
+hBmpIntro1			HBITMAP ?
+hBmpIntro2			HBITMAP ?
+hBmpIntro3			HBITMAP ?
+hBtnContinue		HWND	?
+hBmpContinue		HBITMAP	?
+hBmpFailed			HBITMAP	?
+hBmpComplete		HBITMAP	?
 
 .code
 
@@ -74,7 +79,16 @@ LoadAllPages PROC USES eax
 	mov hBmpIntro2, eax
 	INVOKE LoadBitmap, hInstance, STAGE_INTRODUCTION_3
 	mov hBmpIntro3, eax
+	
+	INVOKE LoadBitmap, hInstance, CONTINUE_BTN
+	mov hBmpContinue, eax
 
+	INVOKE LoadBitmap, hInstance, FAILED_BACKGROUND
+	mov hBmpFailed, eax
+	
+	INVOKE LoadBitmap, hInstance, COMPLETE_BACKGROUND
+	mov hBmpComplete, eax
+	
 	ret
 LoadAllPages ENDP
  
@@ -107,6 +121,14 @@ CreateStageSelectMenu PROC USES eax, hWnd: HWND
 	ret
 CreateStageSelectMenu ENDP
 
+CreateContinueButton PROC USES eax, hWnd: HWND, wParam: DWORD
+	INVOKE CreateWindowEx, 0, ADDR bmpBtnCl, NULL, WS_CHILD or WS_VISIBLE or BS_BITMAP or BS_FLAT, 350, 350, BUTTON_WIDTH, BUTTON_HEIGHT, hWnd, wParam, NULL, NULL
+	mov hBtnContinue, eax
+	INVOKE SendMessage, hBtnContinue, BM_SETIMAGE, 0, hBmpContinue
+
+	ret
+CreateContinueButton ENDP
+
 DestroyStartBtn PROC USES eax
 	INVOKE DestroyWindow, hbtn_start
 	
@@ -121,6 +143,12 @@ DestroyStageSelectMenu PROC USES eax
 	ret
 DestroyStageSelectMenu ENDP
 
+DestroyContinueButton PROC USES eax
+	INVOKE DestroyWindow, hBtnContinue
+
+	ret
+DestroyContinueButton ENDP
+
 DrawAllPage PROC USES eax edx, hdcBuffer: HDC
 	LOCAL hdcBkGd: HDC, hbmpOldBkGd: HBITMAP
     
@@ -131,18 +159,22 @@ DrawAllPage PROC USES eax edx, hdcBuffer: HDC
         mov eax, hBmp_start
     .ELSEIF PAGE_CODE == 1
         mov eax, hBmp
-	.ELSEIF PAGE_CODE == 10
-		mov eax, hBmpIntro1
 	.ELSEIF PAGE_CODE == 11
-		mov eax, hBmpStage1
-	.ELSEIF PAGE_CODE == 20
-		mov eax, hBmpIntro2
+		mov eax, hBmpIntro1
 	.ELSEIF PAGE_CODE == 21
+		mov eax, hBmpStage1
+	.ELSEIF PAGE_CODE == 12
+		mov eax, hBmpIntro2
+	.ELSEIF PAGE_CODE == 22
 		mov eax, hBmpStage2
-	.ELSEIF PAGE_CODE == 30
+	.ELSEIF PAGE_CODE == 13
 		mov eax, hBmpIntro3
-	.ELSEIF PAGE_CODE == 31
+	.ELSEIF PAGE_CODE == 23
 		mov eax, hBmpStage3
+	.ELSEIF PAGE_CODE == 40
+		mov eax, hBmpFailed
+	.ELSEIF PAGE_CODE == 41
+		mov eax, hBmpComplete
     .ENDIF
 	INVOKE SelectObject, hdcBkGd, eax
 	mov hbmpOldBkGd, eax
@@ -160,6 +192,25 @@ ModifyPageCode PROC USES eax,newPageCode: DWORD
     mov PAGE_CODE,eax
     ret
 ModifyPageCode ENDP
+
+SavePreviousPageCode PROC USES eax
+	mov eax, PAGE_CODE
+	mov previousPageCode, eax
+
+	ret
+SavePreviousPageCode ENDP
+
+GetPreviousPageCode	PROC
+	mov eax, previousPageCode
+	
+	ret
+GetPreviousPageCode ENDP
+
+GetPageCode PROC
+	mov eax, PAGE_CODE
+
+	ret
+GetPageCode ENDP
 
 DeleteBackGround PROC
 

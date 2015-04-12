@@ -21,6 +21,7 @@ INCLUDE Sniper.inc
 DrawStage PROTO, hdcBuffer: HDC
 UpdateStage PROTO
 Fire PROTO
+RestoreStage PROTO
 
 .data
      stage  DWORD  0
@@ -33,10 +34,12 @@ Fire PROTO
             Person <ALIVE, <50, 350>, SPEED_WALK, DIRECTION_RIGHT, HAS_GUN, stage_3_0>, <ALIVE, <750, 350>, SPEED_WALK, DIRECTION_LEFT, HAS_GUN, stage_3_1>,
                    <ALIVE, <375, 350>, SPEED_NULL, DIRECTION_RIGHT, NO_GUN, stage_3_2>, <ALIVE, <425, 350>, SPEED_NULL, DIRECTION_LEFT, NO_GUN, stage_3_3>
      personStageSum DWORD 0, 2, 3, 4
-     person1 Person <ALIVE, <400, 300>, SPEED_WALK, DIRECTION_RIGHT, NO_GUN, stage_1_0>
-     person2 Person <ALIVE, <200, 300>, SPEED_NULL, DIRECTION_RIGHT, NO_GUN, stage_1_0>
-     person3 Person <ALIVE, <200, 400>, SPEED_NULL, DIRECTION_LEFT, NO_GUN, stage_1_0>
-     person4 Person <ALIVE, <300, 400>, SPEED_RUN, DIRECTION_LEFT, NO_GUN, stage_1_0>
+	 personBackup	Person 	<>, <>, <>, <>
+					Person 	<ALIVE, <150, 180>, SPEED_NULL, DIRECTION_RIGHT, NO_GUN, stage_1_0>, <ALIVE, <200, 180>, SPEED_NULL, DIRECTION_LEFT, NO_GUN, stage_1_1>, <>, <>
+					Person 	<ALIVE, <100, 300>, SPEED_NULL, DIRECTION_RIGHT, HAS_GUN, stage_2_0>, <ALIVE, <300, 300>, SPEED_NULL, DIRECTION_RIGHT, HAS_GUN, stage_2_1>,
+							<ALIVE, <700, 300>, SPEED_WALK, DIRECTION_LEFT, HAS_GUN, stage_2_2>, <>
+					Person 	<ALIVE, <50, 350>, SPEED_WALK, DIRECTION_RIGHT, HAS_GUN, stage_3_0>, <ALIVE, <750, 350>, SPEED_WALK, DIRECTION_LEFT, HAS_GUN, stage_3_1>,
+							<ALIVE, <375, 350>, SPEED_NULL, DIRECTION_RIGHT, NO_GUN, stage_3_2>, <ALIVE, <425, 350>, SPEED_NULL, DIRECTION_LEFT, NO_GUN, stage_3_3>
 .code
 
 WinMain PROC
@@ -146,43 +149,76 @@ WinProc PROC, hWnd:HWND, localMsg:DWORD, wParam:WPARAM, lParam:LPARAM
 			  INVOKE CreateStageSelectMenu, hWnd
 			  INVOKE InvalidateRect, hWnd, NULL, FALSE
 		  .ELSEIF wParam == 402	; Start stage 1
-			  INVOKE ModifyPageCode, 11
+			  INVOKE ModifyPageCode, 21
 			  INVOKE DestroyStartBtn
 			  mov stage, 1
+			  INVOKE RestoreStage
 			  mov state, STATE_RUNNING
 			  INVOKE ShowCursor, FALSE
 		  .ELSEIF wParam == 403	; Start stage 2
-			  INVOKE ModifyPageCode, 21
+			  INVOKE ModifyPageCode, 22
 			  INVOKE DestroyStartBtn
 			  mov stage, 2
+			  INVOKE RestoreStage
 			  mov state, STATE_RUNNING
 			  INVOKE ShowCursor, FALSE
 		  .ELSEIF wParam == 404	; Start stage 3
-			  INVOKE ModifyPageCode, 31
+			  INVOKE ModifyPageCode, 23
 			  INVOKE DestroyStartBtn
 			  mov stage, 3
+			  INVOKE RestoreStage
 			  mov state, STATE_RUNNING
 			  INVOKE ShowCursor, FALSE
 		  .ELSEIF wParam == 501	; Go to stage 1
-			  INVOKE ModifyPageCode, 10
+			  INVOKE ModifyPageCode, 11
 			  INVOKE DestroyStageSelectMenu
 			  INVOKE DrawStartBtn, 650, 530, hWnd, 402
 			  INVOKE InvalidateRect, hWnd, NULL, FALSE
 		  .ELSEIF wParam == 502	; Go to stage 2
-			  INVOKE ModifyPageCode, 20
+			  INVOKE ModifyPageCode, 12
 			  INVOKE DestroyStageSelectMenu
 			  INVOKE DrawStartBtn, 650, 530, hWnd, 403
 			  INVOKE InvalidateRect, hWnd, NULL, FALSE
 		  .ELSEIF wParam == 503	; Go to stage 3
-			  INVOKE ModifyPageCode, 30
+			  INVOKE ModifyPageCode, 13
 			  INVOKE DestroyStageSelectMenu
 			  INVOKE DrawStartBtn, 650, 530, hWnd, 404
+			  INVOKE InvalidateRect, hWnd, NULL, FALSE
+		  .ELSEIF wParam == 600
+			  INVOKE DestroyContinueButton
+			  INVOKE GetPreviousPageCode
+			  mov edx, eax
+			  sub eax, 10
+			  INVOKE ModifyPageCode, eax
+			  add edx, 381
+			  INVOKE DrawStartBtn, 650, 530, hWnd, edx
+			  INVOKE InvalidateRect, hWnd, NULL, FALSE
+		  .ELSEIF wParam == 601
+			  INVOKE ModifyPageCode,1
+			  INVOKE DestroyContinueButton
+			  INVOKE CreateStageSelectMenu, hWnd
 			  INVOKE InvalidateRect, hWnd, NULL, FALSE
           .ENDIF
      .ELSEIF eax == WM_TIMER
           .IF stage > 0
                INVOKE UpdateStage
 			   INVOKE InvalidateRect, hWnd, NULL, FALSE
+		  .ELSE
+			   INVOKE GetPageCode
+			   .IF eax >= 21 && eax <= 23
+				.IF state == STATE_FAILED
+					INVOKE SavePreviousPageCode
+					INVOKE ModifyPageCode, 40
+					INVOKE CreateContinueButton, hWnd, 600
+					INVOKE ShowCursor, TRUE
+					INVOKE InvalidateRect, hWnd, NULL, FALSE
+				.ELSEIF state == STATE_SUCCESS
+					INVOKE ModifyPageCode, 41
+					INVOKE CreateContinueButton, hWnd, 601
+					INVOKE ShowCursor, TRUE
+					INVOKE InvalidateRect, hWnd, NULL, FALSE
+				.ENDIF
+			   .ENDIF
           .ENDIF
      .ENDIF
      INVOKE DefWindowProc, hWnd, localMsg, wParam, lParam
@@ -237,6 +273,21 @@ callAllPersonProc:
      .ENDIF
      ret
 UpdateStage ENDP
+
+RestoreStage PROC USES ecx esi edi eax edx ebx
+	cld
+	mov eax, stage
+	mov ebx, personStageSize
+	mul ebx
+	mov esi, OFFSET personBackup
+	add esi, eax
+	mov edi, OFFSET person
+	add edi, eax
+	mov ecx, personStageSize
+	rep movsb
+
+	ret
+RestoreStage ENDP
 
 juagePerson PROC USES eax ebx ecx edx, x:PTR Person
      LOCAL hCursorPoint:POINT
