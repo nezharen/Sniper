@@ -21,45 +21,111 @@ dwPara180  DWORD  180
 
 .code
 
-DrawStandPerson PROC USES eax ebx, hdcbuffer:HDC, headcenter_x:DWORD, headcenter_y:DWORD, direction:DWORD
-           LOCAL neckpointx:DWORD, neckpointy:DWORD, waistpointx:DWORD, waistpointy:DWORD, stTime:SYSTEMTIME
-    
-    INVOKE DrawHead,hdcbuffer,headcenter_x,headcenter_y
+DrawPerson PROC USES eax ebx ecx, hdcbuffer:HDC, hperson:PTR Person
+           LOCAL headcenter_x:DWORD, headcenter_y:DWORD,neckpointx:DWORD, neckpointy:DWORD, waistpointx:DWORD, waistpointy:DWORD, 
+                 trunkdegree:DWORD, armleftdegree:DWORD, armrightdegree:DWORD, legleftdegree:DWORD,legrightdegree:DWORD,armspeed:DWORD,legspeed:DWORD,
+                 stTime:SYSTEMTIME, direction:SDWORD, speed:DWORD, alive:BYTE, hasGUN:BYTE
+    mov eax,hperson
+    mov ebx,[eax].Person.position.x
+    mov headcenter_x,ebx
+    mov ebx,[eax].Person.position.y
+    mov headcenter_y,ebx
+    mov ebx,[eax].Person.direction
+    mov direction,ebx
+    mov ebx,[eax].Person.speed
+    mov speed,ebx
+    mov bl,[eax].Person.alive
+    mov alive,bl
+    ;mov bh,[eax].Person.hasGUN
+    ;mov hasGUN,bh
 
-    mov eax,headcenter_y
-    add eax,PERSON_HEAD_RADIUS
-    mov neckpointy,eax
-    mov eax,headcenter_x
-    mov neckpointx,eax
-    INVOKE DrawTrunk,hdcbuffer,neckpointx,neckpointy,STAND_TRUNK_DEGREE
-    
-    mov eax,neckpointy
-    add eax,PERSON_TRUNK_LENGTH
-    mov waistpointy,eax
-    mov eax,neckpointx
-    mov waistpointx,eax
+    .IF alive == ALIVE
+        mov eax,headcenter_y
+        add eax,PERSON_HEAD_RADIUS
+        mov neckpointy,eax
+        add eax,PERSON_TRUNK_LENGTH
+        mov waistpointy,eax
 
-    INVOKE GetLocalTime,ADDR stTime
-    mov ax, stTime.wSecond
-    mov bl, STAND_ARM_MOVE_PERIOD
-    div bl
+        mov eax,headcenter_x
+        mov neckpointx,eax
+        mov waistpointx,eax
+        
+        mov eax,STAND_TRUNK_DEGREE
+        mov trunkdegree,eax
+        
+        .IF speed == SPEED_NULL
+            mov eax,STAND_ARM_LEFT_STATIC_DEGREE
+            mov armleftdegree,eax
+            mov eax,STAND_ARM_RIGHT_STATIC_DEGREE
+            mov armrightdegree,eax
 
-    .IF ah == 0
-        INVOKE DrawArm,hdcbuffer,neckpointx,neckpointy,205,1,ROTATE_DIRECTION_ANTICLOCKWISE
-        INVOKE DrawArm,hdcbuffer,neckpointx,neckpointy,155,1,ROTATE_DIRECTION_CLOCKWISE
+            mov eax,STAND_LEG_LEFT_STATIC_DEGREE
+            mov legleftdegree,eax
+            mov eax,STAND_LEG_RIGHT_STATIC_DEGREE
+            mov legrightdegree,eax
 
-        INVOKE DrawLeg,hdcbuffer,waistpointx,waistpointy,155,1,ROTATE_DIRECTION_CLOCKWISE,direction
-        INVOKE DrawLeg,hdcbuffer,waistpointx,waistpointy,205,1,ROTATE_DIRECTION_ANTICLOCKWISE,direction
-    .ELSEIF
-        INVOKE DrawArm,hdcbuffer,neckpointx,neckpointy,212,0,ROTATE_DIRECTION_NULL
-        INVOKE DrawArm,hdcbuffer,neckpointx,neckpointy,147,0,ROTATE_DIRECTION_NULL
+            mov eax,speed
+            mov armspeed,eax
+            mov legspeed,eax
+        .ELSEIF speed == SPEED_WALK
+            mov eax,WALK_ARM_LEFT_START_DEGREE
+            mov armleftdegree,eax
+            mov eax,WALK_ARM_RIGHT_START_DEGREE
+            mov armrightdegree,eax
 
-        INVOKE DrawLeg,hdcbuffer,waistpointx,waistpointy,147,0,ROTATE_DIRECTION_NULL,direction
-        INVOKE DrawLeg,hdcbuffer,waistpointx,waistpointy,212,0,ROTATE_DIRECTION_NULL,direction
+            mov eax,WALK_LEG_LEFT_START_DEGREE
+            mov legleftdegree,eax
+            mov eax,WALK_LEG_RIGHT_START_DEGREE
+            mov legrightdegree,eax
+
+            mov eax,WALK_ARM_SPEED
+            mov armspeed,eax
+            mov eax,WALK_LEG_SPEED
+            mov legspeed,eax
+        .ELSE
+            mov eax,RUN_ARM_LEFT_START_DEGREE
+            mov armleftdegree,eax
+            mov eax,RUN_ARM_RIGHT_START_DEGREE
+            mov armrightdegree,eax
+
+            mov eax,RUN_LEG_LEFT_START_DEGREE
+            mov legleftdegree,eax
+            mov eax,RUN_LEG_RIGHT_START_DEGREE
+            mov legrightdegree,eax
+
+            mov eax,RUN_ARM_SPEED
+            mov armspeed,eax
+            mov eax,RUN_LEG_SPEED
+            mov legspeed,eax
+        .ENDIF
+    .ELSEIF alive == DYING
+
+    .ELSE ; alive == DEAD
+        mov eax,headcenter_y
+        add eax,PERSON_HEAD_RADIUS
+        mov neckpointy,eax
+        add eax,PERSON_TRUNK_LENGTH
+        mov waistpointy,eax
+
+        mov eax,headcenter_x
+        mov neckpointx,eax
+        mov waistpointx,eax
+        
+        mov eax,STAND_TRUNK_DEGREE
+        mov trunkdegree,eax
     .ENDIF
-    
+
+    INVOKE DrawHead,hdcbuffer,headcenter_x,headcenter_y
+    INVOKE DrawTrunk,hdcbuffer,neckpointx,neckpointy,trunkdegree
+
+    INVOKE DrawArm,hdcbuffer,neckpointx,neckpointy,armleftdegree,armspeed,ROTATE_DIRECTION_ANTICLOCKWISE
+    INVOKE DrawArm,hdcbuffer,neckpointx,neckpointy,armrightdegree,armspeed,ROTATE_DIRECTION_CLOCKWISE
+
+    INVOKE DrawLeg,hdcbuffer,waistpointx,waistpointy,legleftdegree,legspeed,ROTATE_DIRECTION_CLOCKWISE,direction
+    INVOKE DrawLeg,hdcbuffer,waistpointx,waistpointy,legrightdegree,legspeed,ROTATE_DIRECTION_ANTICLOCKWISE,direction
+
     ret
-DrawStandPerson ENDP
+DrawPerson ENDP
 
 DrawHead PROC USES eax ebx ecx edx,hdcbuffer:HDC,headcenter_X:DWORD,headcenter_Y:DWORD
     LOCAL hbrush:HBRUSH, holdObject:HGDIOBJ
@@ -101,12 +167,12 @@ DrawArm PROC,hdcbuffer:HDC,armtop_x:DWORD,armtop_y:DWORD,degree:DWORD,armspeed:D
     ret
 DrawArm ENDP
 
-DrawLeg PROC,hdcbuffer:HDC,legtop_x:DWORD,legtop_y:DWORD,degree:DWORD,legspeed:DWORD,legRotateDirection:DWORD, direction:DWORD
+DrawLeg PROC,hdcbuffer:HDC,legtop_x:DWORD,legtop_y:DWORD,degree:DWORD,legspeed:DWORD,legRotateDirection:DWORD, direction:SDWORD
     LOCAL anklex:DWORD, ankley:DWORD, leg_degree:DWORD, foot_direction:DWORD
     
     .IF direction == DIRECTION_LEFT
         mov eax, STAND_FOOT_DIRECTION_LEFT
-    .ELSEIF direction == DIRECTION_RIGHT
+    .ELSE
         mov eax, STAND_FOOT_DIRECTION_RIGHT
     .ENDIF
     mov foot_direction, eax
@@ -141,15 +207,9 @@ DrawFoot PROC,hdcbuffer:HDC,foottop_x:DWORD,foottop_y:DWORD,degree:DWORD
 DrawFoot ENDP
 
 ;return eax value degree
-DrawRotateLine PROC USES ebx,hdcbuffer:HDC,centerX:DWORD,centerY:DWORD,radius:DWORD,linewidth:DWORD,startdegree:DWORD,rotatespeed:DWORD, rotateDirection:DWORD
-    LOCAL stTime:SYSTEMTIME, rotateRange:DWORD, DrotateRange:DWORD, rotateCoefficient:DWORD
+DrawRotateLine PROC USES ebx,hdcbuffer:HDC,centerX:DWORD,centerY:DWORD,radius:DWORD,linewidth:DWORD,startdegree:DWORD,rotateCoefficient:DWORD, rotateDirection:DWORD
+    LOCAL stTime:SYSTEMTIME, rotateRange:DWORD, DrotateRange:DWORD
 
-    .IF rotatespeed == 1
-        mov rotateCoefficient,ROTATE_LINE_SPEED_ONE
-    .ELSEIF rotatespeed == 2
-        mov rotateCoefficient,ROTATE_LINE_SPEED_TWO
-    .ENDIF
-    
     mov eax, REFRESH_FRAME
     mov ebx, rotateCoefficient
     mul ebx

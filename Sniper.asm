@@ -33,7 +33,10 @@ Fire PROTO
             Person <ALIVE, <50, 300>, SPEED_WALK, DIRECTION_RIGHT, HAS_GUN, stage_3_0>, <ALIVE, <750, 300>, SPEED_WALK, DIRECTION_LEFT, HAS_GUN, stage_3_1>,
                    <ALIVE, <375, 300>, SPEED_NULL, DIRECTION_RIGHT, NO_GUN, stage_3_2>, <ALIVE, <425, 300>, SPEED_NULL, DIRECTION_LEFT, NO_GUN, stage_3_3>
      personStageSum DWORD 0, 2, 3, 4
-
+     person1 Person <ALIVE, <400, 300>, SPEED_WALK, DIRECTION_RIGHT, NO_GUN, stage_1_0>
+     person2 Person <ALIVE, <200, 300>, SPEED_NULL, DIRECTION_RIGHT, NO_GUN, stage_1_0>
+     person3 Person <ALIVE, <200, 400>, SPEED_NULL, DIRECTION_LEFT, NO_GUN, stage_1_0>
+     person4 Person <ALIVE, <300, 400>, SPEED_RUN, DIRECTION_LEFT, NO_GUN, stage_1_0>
 .code
 
 WinMain PROC
@@ -202,9 +205,11 @@ ErrorHandler PROC
 ErrorHandler ENDP
 
 DrawStage PROC USES eax ecx, hdcBuffer: HDC
-	INVOKE DrawAllPage, hdcBuffer
-	INVOKE DrawStandPerson, hdcBuffer, 400,300,DIRECTION_RIGHT
-    INVOKE DrawStandPerson, hdcBuffer, 200,300,DIRECTION_LEFT
+    INVOKE DrawAllPage, hdcBuffer
+    INVOKE DrawPerson,hdcBuffer,ADDR person1
+    INVOKE DrawPerson,hdcBuffer,ADDR person2
+    INVOKE DrawPerson,hdcBuffer,ADDR person3
+    INVOKE DrawPerson,hdcBuffer,ADDR person4
     ret
 DrawStage ENDP
 

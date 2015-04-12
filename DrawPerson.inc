@@ -1,11 +1,11 @@
-DrawStandPerson PROTO, hdcbuffer:HDC, headcenter_x:DWORD, headcenter_y:DWORD, direction:DWORD
+DrawPerson PROTO, hdcbuffer:HDC, hperson:PTR Person
 DrawHead PROTO,hdcbuffer:HDC,headcenter_X:DWORD,headcenter_Y:DWORD
 DrawTrunk PROTO,hdcbuffer:HDC,trunktop_X:DWORD,trunktop_Y:DWORD,degree:DWORD
 DrawArm PROTO,hdcbuffer:HDC,armtop_x:DWORD,armtop_y:DWORD,degree:DWORD,armspeed:DWORD,armRotateDirection:DWORD
-DrawLeg PROTO,hdcbuffer:HDC,legtop_x:DWORD,legtop_y:DWORD,degree:DWORD,legspeed:DWORD,legRotateDirection:DWORD, direction:DWORD
+DrawLeg PROTO,hdcbuffer:HDC,legtop_x:DWORD,legtop_y:DWORD,degree:DWORD,legspeed:DWORD,legRotateDirection:DWORD, direction:SDWORD
 DrawFoot PROTO,hdcbuffer:HDC,foottop_x:DWORD,foottop_y:DWORD,degree:DWORD
 DrawDegreeLine PROTO,hdcbuffer:HDC,centerX:DWORD,centerY:DWORD,radius:DWORD,linewidth:DWORD,degree:DWORD
-DrawRotateLine PROTO,hdcbuffer:HDC,centerX:DWORD,centerY:DWORD,radius:DWORD,linewidth:DWORD,startdegree:DWORD,rotatespeed:DWORD, rotateDirection:DWORD
+DrawRotateLine PROTO,hdcbuffer:HDC,centerX:DWORD,centerY:DWORD,radius:DWORD,linewidth:DWORD,startdegree:DWORD,rotateCoefficient:DWORD, rotateDirection:DWORD
 CalcX PROTO,dwDegree:DWORD,dwRadius:DWORD,dwCenterX:DWORD
 CalcY PROTO,dwDegree:DWORD,dwRadius:DWORD,dwCenterY:DWORD
 
@@ -25,18 +25,34 @@ STAND_LEG_LEFT_DEGREE equ 200
 STAND_FOOT_DIRECTION_LEFT equ 270
 STAND_FOOT_DIRECTION_RIGHT equ 90
 
-STAND_ARM_LEFT_STATIC_DEGREE equ 210
-STAND_ARM_RIGHT_STATIC_DEGREE equ 150
 
-STAND_ARM_MOVE_PERIOD equ 1 ;右胳膊每隔几秒钟动一次
+STAND_ARM_LEFT_STATIC_DEGREE equ 230
+STAND_ARM_RIGHT_STATIC_DEGREE equ 130
+STAND_LEG_LEFT_STATIC_DEGREE equ 155
+STAND_LEG_RIGHT_STATIC_DEGREE equ 205
+;同一侧腿和胳膊的旋转方向相反，注意不要顺拐
+WALK_ARM_LEFT_START_DEGREE equ 230
+WALK_ARM_RIGHT_START_DEGREE equ 130
+WALK_LEG_LEFT_START_DEGREE equ 155
+WALK_LEG_RIGHT_START_DEGREE equ 205
+WALK_ARM_SPEED equ 2
+WALK_LEG_SPEED equ 1
 
-;画面20ms刷新一次，毫秒范围0-999，推测refresh_period为20的倍数看起来可能更流畅。1000/20=50
-REFRESH_PERIOD equ 40
+RUN_ARM_LEFT_START_DEGREE equ 255
+RUN_ARM_RIGHT_START_DEGREE equ 105
+RUN_LEG_LEFT_START_DEGREE equ 130
+RUN_LEG_RIGHT_START_DEGREE equ 230
+RUN_ARM_SPEED equ 3
+RUN_LEG_SPEED equ 2
+
+;画面20ms刷新一次，毫秒范围0-999，推测refresh_period为20的倍数看起来可能更流畅。1000/20=50 故运动角度范围为25的倍数，均为推测
+REFRESH_PERIOD equ 20
 REFRESH_HALF_FRAME equ 25
 REFRESH_FRAME equ 50
 
 ROTATE_LINE_SPEED_ONE equ 2 ; for normal speed
-ROTATE_LINE_SPEED_TWO equ 6 ; for high speed
+ROTATE_LINE_SPEED_TWO equ 4 ; for high speed
+ROTATE_LINE_SPEED_THREE equ 6 ; for high speed
 ROTATE_DIRECTION_NULL equ 0
 ROTATE_DIRECTION_CLOCKWISE equ 1
 ROTATE_DIRECTION_ANTICLOCKWISE equ 2
