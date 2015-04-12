@@ -113,9 +113,9 @@ WinProc PROC, hWnd:HWND, localMsg:DWORD, wParam:WPARAM, lParam:LPARAM
 		  INVOKE SelectObject, hdcBuffer, hbmpBuffer
 		  mov hbmpOldBuffer, eax
 		  
-		  INVOKE DrawStage, hdcBuffer
-		  
+		  INVOKE DrawAllPage, hdcBuffer
 		  .IF stage > 0
+			INVOKE DrawStage, hdcBuffer
 			INVOKE GetNewCursorPos, hWnd, ADDR hCursorPoint
 			INVOKE DrawMouse, hdcBuffer, hCursorPoint.x, hCursorPoint.y
 		  .ENDIF
@@ -204,12 +204,16 @@ ErrorHandler PROC
      ret
 ErrorHandler ENDP
 
-DrawStage PROC USES eax ecx, hdcBuffer: HDC
-    INVOKE DrawAllPage, hdcBuffer
-    INVOKE DrawPerson,hdcBuffer,ADDR person1
-    INVOKE DrawPerson,hdcBuffer,ADDR person2
-    INVOKE DrawPerson,hdcBuffer,ADDR person3
-    INVOKE DrawPerson,hdcBuffer,ADDR person4
+DrawStage PROC USES eax ecx esi ebx, hdcBuffer: HDC
+	call GetStagePerson
+    call GetStagePersonSum
+	cmp ecx, 0
+	je finish
+drawAllPerson:
+	INVOKE DrawPerson, hdcBuffer, ADDR person[ebx + esi]
+    add esi, TYPE person
+    loop drawAllPerson
+finish:
     ret
 DrawStage ENDP
 
