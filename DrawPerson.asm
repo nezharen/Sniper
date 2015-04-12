@@ -99,20 +99,51 @@ DrawPerson PROC USES eax ebx ecx, hdcbuffer:HDC, hperson:PTR Person
             mov legspeed,eax
         .ENDIF
     .ELSEIF alive == DYING
-
-    .ELSE ; alive == DEAD
-        mov eax,headcenter_y
-        add eax,PERSON_HEAD_RADIUS
-        mov neckpointy,eax
-        add eax,PERSON_TRUNK_LENGTH
-        mov waistpointy,eax
-
         mov eax,headcenter_x
+        add eax,PERSON_HEAD_RADIUS
         mov neckpointx,eax
+        add eax,PERSON_TRUNK_LENGTH
         mov waistpointx,eax
+
+        mov eax,headcenter_y
+        mov neckpointy,eax
+        mov waistpointy,eax
         
-        mov eax,STAND_TRUNK_DEGREE
+        mov eax,DEAD_TRUNK_DEGREE
         mov trunkdegree,eax
+        mov eax,DEAD_ARM_DEGREE
+        mov armleftdegree,eax
+        mov armrightdegree,eax
+        mov eax,DEAD_LEG_DEGREE
+        mov legleftdegree,eax
+        mov legrightdegree,eax
+
+        mov eax,DEAD_SPEED
+        mov armspeed,eax
+        mov legspeed,eax
+    .ELSE ; alive == DEAD
+        mov eax,headcenter_x
+        add eax,PERSON_HEAD_RADIUS
+        mov neckpointx,eax
+        add eax,PERSON_TRUNK_LENGTH
+        mov waistpointx,eax
+
+        mov eax,headcenter_y
+        mov neckpointy,eax
+        mov waistpointy,eax
+        
+        mov eax,DEAD_TRUNK_DEGREE
+        mov trunkdegree,eax
+        mov eax,DEAD_ARM_DEGREE
+        mov armleftdegree,eax
+        mov armrightdegree,eax
+        mov eax,DEAD_LEG_DEGREE
+        mov legleftdegree,eax
+        mov legrightdegree,eax
+
+        mov eax,DEAD_SPEED
+        mov armspeed,eax
+        mov legspeed,eax
     .ENDIF
 
     INVOKE DrawHead,hdcbuffer,headcenter_x,headcenter_y
