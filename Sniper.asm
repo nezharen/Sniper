@@ -52,7 +52,8 @@ WinMain PROC
      mov MainWin.hInstance, eax
      INVOKE LoadIcon, hInstance, ID_ICON_MAIN
      mov MainWin.hIcon, eax
-     INVOKE ShowCursor, FALSE
+     INVOKE LoadCursor, NULL, IDC_ARROW
+	 mov MainWin.hCursor, eax
 
      INVOKE RegisterClass, ADDR MainWin
      .IF eax == 0
@@ -111,8 +112,10 @@ WinProc PROC, hWnd:HWND, localMsg:DWORD, wParam:WPARAM, lParam:LPARAM
 		  
 		  INVOKE DrawStage, hdcBuffer
 		  
-		  INVOKE GetNewCursorPos, hWnd, ADDR hCursorPoint
-		  INVOKE DrawMouse, hdcBuffer, hCursorPoint.x, hCursorPoint.y
+		  .IF stage > 0
+			INVOKE GetNewCursorPos, hWnd, ADDR hCursorPoint
+			INVOKE DrawMouse, hdcBuffer, hCursorPoint.x, hCursorPoint.y
+		  .ENDIF
 		  
 		  INVOKE BitBlt, hdc, 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT, hdcBuffer, 0, 0, SRCCOPY	; draw buffer to screen
 		  
@@ -131,17 +134,50 @@ WinProc PROC, hWnd:HWND, localMsg:DWORD, wParam:WPARAM, lParam:LPARAM
 		  INVOKE LoadAllPages
           INVOKE SetTimer, hWnd, ID_TIMER, 20, NULL
           
-          INVOKE DrawStartBtn, hWnd
+          INVOKE DrawStartBtn, 180, 510, hWnd, 401
           
      .ELSEIF eax == WM_COMMAND
           .IF wParam == 401
               INVOKE ModifyPageCode,1
+			  INVOKE DestroyStartBtn
+			  INVOKE CreateStageSelectMenu, hWnd
+			  INVOKE InvalidateRect, hWnd, NULL, FALSE
+		  .ELSEIF wParam == 402	; Start stage 1
+			  INVOKE ModifyPageCode, 11
+			  INVOKE DestroyStartBtn
+			  mov stage, 1
+			  INVOKE ShowCursor, FALSE
+		  .ELSEIF wParam == 403	; Start stage 2
+			  INVOKE ModifyPageCode, 21
+			  INVOKE DestroyStartBtn
+			  mov stage, 1
+			  INVOKE ShowCursor, FALSE
+		  .ELSEIF wParam == 404	; Start stage 3
+			  INVOKE ModifyPageCode, 31
+			  INVOKE DestroyStartBtn
+			  mov stage, 1
+			  INVOKE ShowCursor, FALSE
+		  .ELSEIF wParam == 501	; Go to stage 1
+			  INVOKE ModifyPageCode, 10
+			  INVOKE DestroyStageSelectMenu
+			  INVOKE DrawStartBtn, 650, 530, hWnd, 402
+			  INVOKE InvalidateRect, hWnd, NULL, FALSE
+		  .ELSEIF wParam == 502	; Go to stage 2
+			  INVOKE ModifyPageCode, 20
+			  INVOKE DestroyStageSelectMenu
+			  INVOKE DrawStartBtn, 650, 530, hWnd, 403
+			  INVOKE InvalidateRect, hWnd, NULL, FALSE
+		  .ELSEIF wParam == 503	; Go to stage 3
+			  INVOKE ModifyPageCode, 30
+			  INVOKE DestroyStageSelectMenu
+			  INVOKE DrawStartBtn, 650, 530, hWnd, 404
+			  INVOKE InvalidateRect, hWnd, NULL, FALSE
           .ENDIF
      .ELSEIF eax == WM_TIMER
           .IF stage > 0
                INVOKE UpdateStage
+			   INVOKE InvalidateRect, hWnd, NULL, FALSE
           .ENDIF
-          INVOKE InvalidateRect, hWnd, NULL, FALSE
      .ENDIF
      INVOKE DefWindowProc, hWnd, localMsg, wParam, lParam
      ret
@@ -165,7 +201,7 @@ ErrorHandler ENDP
 DrawStage PROC USES eax ecx, hdcBuffer: HDC
 	INVOKE DrawAllPage, hdcBuffer
 	INVOKE DrawStandPerson, hdcBuffer, 400,300,DIRECTION_RIGHT
-     INVOKE DrawStandPerson, hdcBuffer, 200,300,DIRECTION_LEFT
+    INVOKE DrawStandPerson, hdcBuffer, 200,300,DIRECTION_LEFT
     ret
 DrawStage ENDP
 

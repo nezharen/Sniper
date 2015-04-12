@@ -30,6 +30,12 @@ hBtnStage3		HWND	?
 hBmpBtnStage1	HBITMAP	?
 hBmpBtnStage2	HBITMAP	?
 hBmpBtnStage3	HBITMAP	?
+hBmpStage1		HBITMAP ?
+hBmpStage2		HBITMAP ?
+hBmpStage3		HBITMAP ?
+hBmpIntro1		HBITMAP ?
+hBmpIntro2		HBITMAP ?
+hBmpIntro3		HBITMAP ?
 
 .code
 
@@ -50,36 +56,33 @@ LoadAllPages PROC USES eax
 	
 	INVOKE LoadBitmap, hInstance, STAGE_BTN_1
 	mov hBmpBtnStage1, eax
-	
 	INVOKE LoadBitmap, hInstance, STAGE_BTN_2
 	mov hBmpBtnStage2, eax
-	
 	INVOKE LoadBitmap, hInstance, STAGE_BTN_3
 	mov hBmpBtnStage3, eax
+	
+	INVOKE LoadBitmap, hInstance, STAGE_BACKGROUND_1
+	mov hBmpStage1, eax
+	INVOKE LoadBitmap, hInstance, STAGE_BACKGROUND_2
+	mov hBmpStage2, eax
+	INVOKE LoadBitmap, hInstance, STAGE_BACKGROUND_3
+	mov hBmpStage3, eax
+
+	INVOKE LoadBitmap, hInstance, STAGE_INTRODUCTION_1
+	mov hBmpIntro1, eax
+	INVOKE LoadBitmap, hInstance, STAGE_INTRODUCTION_2
+	mov hBmpIntro2, eax
+	INVOKE LoadBitmap, hInstance, STAGE_INTRODUCTION_3
+	mov hBmpIntro3, eax
 
 	ret
 LoadAllPages ENDP
-
-DrawStartPage PROC USES eax edx, hdcBuffer: HDC
-    LOCAL hdcBkGd: HDC, hbmpOldBkGd: HBITMAP
-    
-    INVOKE CreateCompatibleDC, hdcBuffer
-	mov hdcBkGd, eax
-	INVOKE SelectObject, hdcBkGd, hBmp_start
-	mov hbmpOldBkGd, eax
-
-	INVOKE BitBlt, hdcBuffer, 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT, hdcBkGd, 0, 0, SRCCOPY	; draw background to buffer
-    
-    INVOKE SelectObject, hdcBkGd, hbmpOldBkGd
-    INVOKE DeleteDC, hdcBkGd
-    ret
-DrawStartPage ENDP
  
-DrawStartBtn PROC USES eax, hWnd:HWND
+DrawStartBtn PROC USES eax, x: LONG, y: LONG, hWnd: HWND, wParam: DWORD
     INVOKE CreateWindowEx,0,
         ADDR bmpBtnCl,NULL,
         WS_CHILD or WS_VISIBLE or BS_BITMAP or BS_FLAT,
-        180,510,BUTTON_WIDTH,BUTTON_HEIGHT,hWnd,401,
+        x,y,BUTTON_WIDTH,BUTTON_HEIGHT,hWnd,wParam,
         NULL,NULL
     mov hbtn_start, eax
 
@@ -106,33 +109,49 @@ CreateStageSelectMenu ENDP
 
 DestroyStartBtn PROC USES eax
 	INVOKE DestroyWindow, hbtn_start
-
+	
 	ret
 DestroyStartBtn ENDP
 
-DrawModePage PROC USES eax edx, hdcBuffer: HDC
-    LOCAL hdcBkGd: HDC, hbmpOldBkGd: HBITMAP
+DestroyStageSelectMenu PROC USES eax
+	INVOKE DestroyWindow, hBtnStage1
+	INVOKE DestroyWindow, hBtnStage2
+	INVOKE DestroyWindow, hBtnStage3
 
-    INVOKE DestroyWindow,hbtn_start
+	ret
+DestroyStageSelectMenu ENDP
 
+DrawAllPage PROC USES eax edx, hdcBuffer: HDC
+	LOCAL hdcBkGd: HDC, hbmpOldBkGd: HBITMAP
+    
     INVOKE CreateCompatibleDC, hdcBuffer
-    mov hdcBkGd, eax
-    INVOKE SelectObject, hdcBkGd, hBmp
-    mov hbmpOldBkGd, eax
+	mov hdcBkGd, eax
+	
+    .IF PAGE_CODE == 0
+        mov eax, hBmp_start
+    .ELSEIF PAGE_CODE == 1
+        mov eax, hBmp
+	.ELSEIF PAGE_CODE == 10
+		mov eax, hBmpIntro1
+	.ELSEIF PAGE_CODE == 11
+		mov eax, hBmpStage1
+	.ELSEIF PAGE_CODE == 20
+		mov eax, hBmpIntro2
+	.ELSEIF PAGE_CODE == 21
+		mov eax, hBmpStage2
+	.ELSEIF PAGE_CODE == 30
+		mov eax, hBmpIntro3
+	.ELSEIF PAGE_CODE == 31
+		mov eax, hBmpStage3
+    .ENDIF
+	INVOKE SelectObject, hdcBkGd, eax
+	mov hbmpOldBkGd, eax
 
-    INVOKE BitBlt, hdcBuffer, 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT, hdcBkGd, 0, 0, SRCCOPY  ; draw background to buffer
+	INVOKE BitBlt, hdcBuffer, 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT, hdcBkGd, 0, 0, SRCCOPY	; draw background to buffer
     
     INVOKE SelectObject, hdcBkGd, hbmpOldBkGd
     INVOKE DeleteDC, hdcBkGd
-    ret
-DrawModePage ENDP
-
-DrawAllPage PROC USES eax edx, hdcBuffer: HDC
-    .IF PAGE_CODE == 0
-        INVOKE DrawStartPage, hdcBuffer
-    .ELSEIF PAGE_CODE == 1
-        INVOKE DrawModePage, hdcBuffer
-    .ENDIF
+	
     ret
 DrawAllPage ENDP
 
