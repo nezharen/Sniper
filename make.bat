@@ -27,14 +27,14 @@ if errorlevel 1 goto errasm
 
 if not exist rsrc.obj goto nores
 
-\MASM32\BIN\Link.exe /SUBSYSTEM:WINDOWS rsrc.obj Cursor.obj DrawPage.obj DrawPerson.obj Sniper.obj
+\MASM32\BIN\Link.exe /SUBSYSTEM:WINDOWS Sniper.obj rsrc.obj Cursor.obj DrawPage.obj DrawPerson.obj
 if errorlevel 1 goto errlink
 
 dir
 goto TheEnd
 
 :nores
-\MASM32\BIN\Link.exe /SUBSYSTEM:WINDOWS Cursor.obj DrawPage.obj DrawPerson.obj Sniper.obj 
+\MASM32\BIN\Link.exe /SUBSYSTEM:WINDOWS Sniper.obj Cursor.obj DrawPage.obj DrawPerson.obj
 if errorlevel 1 goto errlink
 dir
 goto TheEnd
