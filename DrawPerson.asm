@@ -24,7 +24,7 @@ dwPara180  DWORD  180
 DrawPerson PROC USES eax ebx ecx, hdcbuffer:HDC, hperson:PTR Person
            LOCAL headcenter_x:DWORD, headcenter_y:DWORD,neckpointx:DWORD, neckpointy:DWORD, waistpointx:DWORD, waistpointy:DWORD, 
                  trunkdegree:DWORD, armleftdegree:DWORD, armrightdegree:DWORD, legleftdegree:DWORD,legrightdegree:DWORD,armspeed:DWORD,legspeed:DWORD,
-                 stTime:SYSTEMTIME, direction:SDWORD, speed:DWORD, alive:BYTE, hasGUN:BYTE
+                 stTime:SYSTEMTIME, direction:SDWORD, speed:DWORD, alive:BYTE, hasGUN:BYTE, deadheadcenterX:DWORD, deadheadcenterY:DWORD
     mov eax,hperson
     mov ebx,[eax].Person.position.x
     mov headcenter_x,ebx
@@ -100,46 +100,86 @@ DrawPerson PROC USES eax ebx ecx, hdcbuffer:HDC, hperson:PTR Person
         .ENDIF
     .ELSEIF alive == DYING
         mov eax,headcenter_x
-        add eax,PERSON_HEAD_RADIUS
-        mov neckpointx,eax
-        add eax,PERSON_TRUNK_LENGTH
-        mov waistpointx,eax
+        .IF direction == DIRECTION_LEFT
+            sub eax,PERSON_HEAD_CENTER_TO_ANKLE_LENGTH
+            mov headcenter_x,eax
+            add eax,PERSON_HEAD_RADIUS
+            mov neckpointx,eax
+            add eax,PERSON_TRUNK_LENGTH
+            mov waistpointx,eax
+        .ELSE
+            add eax,PERSON_HEAD_CENTER_TO_ANKLE_LENGTH
+            mov headcenter_x,eax
+            sub eax,PERSON_HEAD_RADIUS
+            mov neckpointx,eax
+            sub eax,PERSON_TRUNK_LENGTH
+            mov waistpointx,eax
+        .ENDIF
 
         mov eax,headcenter_y
+        add eax,PERSON_HEAD_CENTER_TO_ANKLE_LENGTH
+        mov headcenter_y,eax
         mov neckpointy,eax
         mov waistpointy,eax
         
-        mov eax,DEAD_TRUNK_DEGREE
-        mov trunkdegree,eax
-        mov eax,DEAD_ARM_DEGREE
-        mov armleftdegree,eax
-        mov armrightdegree,eax
-        mov eax,DEAD_LEG_DEGREE
-        mov legleftdegree,eax
-        mov legrightdegree,eax
-
+        .IF direction == DIRECTION_LEFT
+            mov eax,DEAD_DIRECTION_LEFT_BODY_DEGREE
+            mov trunkdegree,eax
+            mov armleftdegree,eax
+            mov armrightdegree,eax
+            mov legleftdegree,eax
+            mov legrightdegree,eax
+        .ELSE
+            mov eax,DEAD_DIRECTION_RIGHT_BODY_DEGREE
+            mov trunkdegree,eax
+            mov armleftdegree,eax
+            mov armrightdegree,eax
+            mov legleftdegree,eax
+            mov legrightdegree,eax
+        .ENDIF
+        
         mov eax,DEAD_SPEED
         mov armspeed,eax
         mov legspeed,eax
     .ELSE ; alive == DEAD
         mov eax,headcenter_x
-        add eax,PERSON_HEAD_RADIUS
-        mov neckpointx,eax
-        add eax,PERSON_TRUNK_LENGTH
-        mov waistpointx,eax
+        .IF direction == DIRECTION_LEFT
+            sub eax,PERSON_HEAD_CENTER_TO_ANKLE_LENGTH
+            mov headcenter_x,eax
+            add eax,PERSON_HEAD_RADIUS
+            mov neckpointx,eax
+            add eax,PERSON_TRUNK_LENGTH
+            mov waistpointx,eax
+        .ELSE
+            add eax,PERSON_HEAD_CENTER_TO_ANKLE_LENGTH
+            mov headcenter_x,eax
+            sub eax,PERSON_HEAD_RADIUS
+            mov neckpointx,eax
+            sub eax,PERSON_TRUNK_LENGTH
+            mov waistpointx,eax
+        .ENDIF
 
         mov eax,headcenter_y
+        add eax,PERSON_HEAD_CENTER_TO_ANKLE_LENGTH
+        mov headcenter_y,eax
         mov neckpointy,eax
         mov waistpointy,eax
         
-        mov eax,DEAD_TRUNK_DEGREE
-        mov trunkdegree,eax
-        mov eax,DEAD_ARM_DEGREE
-        mov armleftdegree,eax
-        mov armrightdegree,eax
-        mov eax,DEAD_LEG_DEGREE
-        mov legleftdegree,eax
-        mov legrightdegree,eax
+        .IF direction == DIRECTION_LEFT
+            mov eax,DEAD_DIRECTION_LEFT_BODY_DEGREE
+            mov trunkdegree,eax
+            mov armleftdegree,eax
+            mov armrightdegree,eax
+            mov legleftdegree,eax
+            mov legrightdegree,eax
+        .ELSE
+            mov eax,DEAD_DIRECTION_RIGHT_BODY_DEGREE
+            mov trunkdegree,eax
+            mov armleftdegree,eax
+            mov armrightdegree,eax
+            mov legleftdegree,eax
+            mov legrightdegree,eax
+        .ENDIF
 
         mov eax,DEAD_SPEED
         mov armspeed,eax
