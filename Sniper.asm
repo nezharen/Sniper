@@ -403,7 +403,9 @@ stage_2_2 PROC USES ebx esi
      .IF person[ebx + esi + 2 * TYPE person].alive == ALIVE
           .IF person[ebx + esi + 2 * TYPE person].direction == DIRECTION_LEFT
                .IF (person[ebx + esi].alive != ALIVE) || (person[ebx + esi + TYPE person].alive != ALIVE)
-                    mov state, STATE_FAILED
+                    .IF person[ebx + esi + 2 * TYPE person].position.x <= 590
+                         mov state, STATE_FAILED
+                    .ENDIF
                .ELSE
                     .IF person[ebx + esi + 2 * TYPE person].position.x <= 400
                          mov person[ebx + esi + 2 * TYPE person].direction, DIRECTION_RIGHT
