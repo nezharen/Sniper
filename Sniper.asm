@@ -199,8 +199,9 @@ WinProc PROC, hWnd:HWND, localMsg:DWORD, wParam:WPARAM, lParam:LPARAM
           .ENDIF
      .ELSEIF eax == WM_TIMER
           .IF stage > 0
+               INVOKE InvalidateRect, hWnd, NULL, FALSE
+               INVOKE UpdateWindow, hWnd
                INVOKE UpdateStage
-			   INVOKE InvalidateRect, hWnd, NULL, FALSE
 		  .ELSE
 			   INVOKE GetPageCode
 			   .IF eax >= 21 && eax <= 23
