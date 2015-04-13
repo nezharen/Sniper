@@ -253,6 +253,10 @@ finish:
 DrawStage ENDP
 
 UpdateStage PROC USES eax ebx ecx esi edi
+     .IF state != STATE_RUNNING
+          mov stage, 0
+          ret
+     .ENDIF
      call GetStagePerson
      call GetStagePersonSum
 callAllPersonProc:
@@ -267,9 +271,6 @@ callAllPersonProc:
      .ENDIF
      add esi, TYPE person
      loop callAllPersonProc
-     .IF state != STATE_RUNNING
-          mov stage, 0
-     .ENDIF
      ret
 UpdateStage ENDP
 
