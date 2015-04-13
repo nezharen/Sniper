@@ -6,7 +6,7 @@ STATE_FAILED    equ 1
 STATE_SUCCESS   equ 2
 SPEED_NULL      equ 0
 SPEED_WALK      equ 1
-SPEED_RUN       equ 2
+SPEED_RUN       equ 3
 DIRECTION_LEFT  equ -1
 DIRECTION_RIGHT equ 1
 NO_GUN          equ 0

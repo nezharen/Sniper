@@ -28,18 +28,16 @@ RestoreStage PROTO
      state  DWORD  STATE_RUNNING
      person Person <>, <>, <>, <>
      personStageSize equ ($ - person)
-            Person <ALIVE, <150, 180>, SPEED_NULL, DIRECTION_RIGHT, NO_GUN, stage_1_0>, <ALIVE, <200, 180>, SPEED_NULL, DIRECTION_LEFT, NO_GUN, stage_1_1>, <>, <>
-            Person <ALIVE, <100, 300>, SPEED_NULL, DIRECTION_RIGHT, HAS_GUN, stage_2_0>, <ALIVE, <300, 300>, SPEED_NULL, DIRECTION_RIGHT, HAS_GUN, stage_2_1>,
-                   <ALIVE, <700, 300>, SPEED_WALK, DIRECTION_LEFT, HAS_GUN, stage_2_2>, <>
-            Person <ALIVE, <50, 350>, SPEED_WALK, DIRECTION_RIGHT, HAS_GUN, stage_3_0>, <ALIVE, <750, 350>, SPEED_WALK, DIRECTION_LEFT, HAS_GUN, stage_3_1>,
-                   <ALIVE, <375, 350>, SPEED_NULL, DIRECTION_RIGHT, NO_GUN, stage_3_2>, <ALIVE, <425, 350>, SPEED_NULL, DIRECTION_LEFT, NO_GUN, stage_3_3>
+            Person <>, <>, <>, <>
+            Person <>, <>, <>, <>
+            Person <>, <>, <>, <>
      personStageSum DWORD 0, 2, 3, 4
-	 personBackup	Person 	<>, <>, <>, <>
-					Person 	<ALIVE, <150, 180>, SPEED_NULL, DIRECTION_RIGHT, NO_GUN, stage_1_0>, <ALIVE, <200, 180>, SPEED_NULL, DIRECTION_LEFT, NO_GUN, stage_1_1>, <>, <>
-					Person 	<ALIVE, <100, 300>, SPEED_NULL, DIRECTION_RIGHT, HAS_GUN, stage_2_0>, <ALIVE, <300, 300>, SPEED_NULL, DIRECTION_RIGHT, HAS_GUN, stage_2_1>,
-							<ALIVE, <700, 300>, SPEED_WALK, DIRECTION_LEFT, HAS_GUN, stage_2_2>, <>
-					Person 	<ALIVE, <50, 350>, SPEED_WALK, DIRECTION_RIGHT, HAS_GUN, stage_3_0>, <ALIVE, <750, 350>, SPEED_WALK, DIRECTION_LEFT, HAS_GUN, stage_3_1>,
-							<ALIVE, <375, 350>, SPEED_NULL, DIRECTION_RIGHT, NO_GUN, stage_3_2>, <ALIVE, <425, 350>, SPEED_NULL, DIRECTION_LEFT, NO_GUN, stage_3_3>
+     personBackup Person <>, <>, <>, <>
+            Person <ALIVE, <180, 180>, SPEED_NULL, DIRECTION_RIGHT, NO_GUN, stage_1_0>, <ALIVE, <200, 185>, SPEED_NULL, DIRECTION_LEFT, NO_GUN, stage_1_1>, <>, <>
+            Person <ALIVE, <100, 300>, SPEED_NULL, DIRECTION_RIGHT, HAS_GUN, stage_2_0>, <ALIVE, <300, 350>, SPEED_NULL, DIRECTION_RIGHT, HAS_GUN, stage_2_1>,
+                   <ALIVE, <600, 320>, SPEED_WALK, DIRECTION_LEFT, HAS_GUN, stage_2_2>, <>
+            Person <ALIVE, <50, 370>, SPEED_WALK, DIRECTION_RIGHT, HAS_GUN, stage_3_0>, <ALIVE, <750, 330>, SPEED_WALK, DIRECTION_LEFT, HAS_GUN, stage_3_1>,
+                   <ALIVE, <375, 350>, SPEED_NULL, DIRECTION_RIGHT, NO_GUN, stage_3_2>, <ALIVE, <425, 355>, SPEED_NULL, DIRECTION_LEFT, NO_GUN, stage_3_3>
 .code
 
 WinMain PROC
@@ -412,7 +410,7 @@ stage_2_2 PROC USES ebx esi
                     .ENDIF
                .ENDIF
           .ELSE
-               .IF person[ebx + esi + 2 * TYPE person].position.x >= 700
+               .IF person[ebx + esi + 2 * TYPE person].position.x >= 600
                     mov person[ebx + esi + 2 * TYPE person].direction, DIRECTION_LEFT
                .ENDIF
           .ENDIF
@@ -465,7 +463,7 @@ stage_3_2 PROC USES ebx esi
      .IF person[ebx + esi + 2 * TYPE person].alive == ALIVE
           .IF person[ebx + esi + 3 * TYPE person].alive == DEAD
                mov person[ebx + esi + 2 * TYPE person].speed, SPEED_RUN
-               .IF person[ebx + esi + 2 * TYPE person].position.x >= 500
+               .IF person[ebx + esi + 2 * TYPE person].position.x >= 505
                     mov state, STATE_FAILED
                .ENDIF
           .ENDIF
@@ -482,7 +480,7 @@ stage_3_3 PROC USES ebx esi
      .IF person[ebx + esi + 3 * TYPE person].alive == ALIVE
           .IF person[ebx + esi + 2 * TYPE person].alive == DEAD
                mov person[ebx + esi + 3 * TYPE person].speed, SPEED_RUN
-               .IF person[ebx + esi + 3 * TYPE person].position.x <= 300
+               .IF person[ebx + esi + 3 * TYPE person].position.x <= 302
                     mov state, STATE_FAILED
                .ENDIF
           .ENDIF
