@@ -206,13 +206,13 @@ DrawPerson ENDP
 DrawRifle PROC USES eax edx, hdcbuffer: HDC, x: LONG, y: LONG, direction: SDWORD
 	LOCAL hThickPen: HPEN, oldPen: HPEN, hThinPen: HPEN, hMediumPen: HPEN
 	
-	RGB 0FFh, 0FFh, 0FFh
+	RGB 128, 0, 0
 	INVOKE CreatePen, PS_SOLID, 4, eax
 	mov hThickPen, eax
-	RGB 0FFh, 0FFh, 0FFh
+	RGB 128, 0, 0
 	INVOKE CreatePen, PS_SOLID, 2, eax
 	mov hThinPen, eax
-	RGB 0FFh, 0FFh, 0FFh
+	RGB 128, 0, 0
 	INVOKE CreatePen, PS_SOLID, 3, eax
 	mov hMediumPen, eax
 	
