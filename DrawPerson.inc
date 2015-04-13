@@ -1,4 +1,5 @@
 DrawPerson PROTO, hdcbuffer:HDC, hperson:PTR Person
+DrawRifle PROTO, hdcbuffer: HDC, x: LONG, y: LONG, direction: SDWORD
 DrawHead PROTO,hdcbuffer:HDC,headcenter_X:DWORD,headcenter_Y:DWORD
 DrawTrunk PROTO,hdcbuffer:HDC,trunktop_X:DWORD,trunktop_Y:DWORD,degree:DWORD
 DrawArm PROTO,hdcbuffer:HDC,armtop_x:DWORD,armtop_y:DWORD,degree:DWORD,armspeed:DWORD,armRotateDirection:DWORD
