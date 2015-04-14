@@ -199,9 +199,51 @@ DrawPerson PROC USES eax ebx ecx, hdcbuffer:HDC, hperson:PTR Person
         INVOKE DrawRifle,hdcbuffer,headcenter_x,headcenter_y,direction
     .ENDIF
 
+    
+    .IF alive == DYING
+        INVOKE DrawShootBlood,hdcbuffer,headcenter_x,headcenter_y
+    .ENDIF
+
+    .IF alive == DEAD
+        INVOKE DrawShootBlood,hdcbuffer,headcenter_x,headcenter_y
+    .ENDIF
+    
     ret
 DrawPerson ENDP
+DrawShootBlood PROC USES eax ebx ecx,hdcbuffer:HDC, x:DWORD, y:DWORD
+    LOCAL holdpen:HPEN,hredpen:HPEN,hredbrush:HBRUSH,blood_red:DWORD,tmpX:DWORD,tmpY:DWORD,bloodlength:DWORD,blooddegree:DWORD
+    INVOKE SetBkMode,hdcbuffer,TRANSPARENT
+    RGB 0CDh, 000h, 000h
+    mov blood_red,eax
+    INVOKE CreatePen,PS_DOT,BLOOD_WIDTH,blood_red
+    mov hredpen,eax
+    INVOKE SelectObject,hdcbuffer,hredpen
+    mov holdpen,eax
+    
+    mov eax,BLOOD_LENGTH
+    mov bloodlength,eax
+    
+    mov ecx,BLOOD_LINE_NUM
+    mov eax,BLOOD_LINE_DEGREE
+    mov blooddegree,eax
+    
+Ldrawblood:
+    pusha
+    mov ebx,BLOOD_LINE_INTERVAL
+    sub blooddegree,ebx
+    INVOKE CalcX,blooddegree,bloodlength,x
+    mov tmpX,eax
+    INVOKE CalcY,blooddegree,bloodlength,y
+    mov tmpY,eax
+    INVOKE MoveToEx,hdcbuffer,x,y,NULL
+    INVOKE LineTo,hdcbuffer,tmpX,tmpY
+    popa
+    LOOP Ldrawblood
 
+    INVOKE SelectObject,hdcbuffer,holdpen
+    INVOKE DeleteObject,hredpen
+    ret
+DrawShootBlood ENDP
 ; x: headcenter_x, y: headcenter_y: direction: DIRECTION_LEFT or DIRECTION_RIGHT
 DrawRifle PROC USES eax edx, hdcbuffer: HDC, x: LONG, y: LONG, direction: SDWORD
 	LOCAL hThickPen: HPEN, oldPen: HPEN, hThinPen: HPEN, hMediumPen: HPEN

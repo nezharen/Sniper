@@ -1,4 +1,5 @@
 DrawPerson PROTO, hdcbuffer:HDC, hperson:PTR Person
+DrawShootBlood PROTO,hdcbuffer:HDC, x:DWORD, y:DWORD
 DrawRifle PROTO, hdcbuffer: HDC, x: LONG, y: LONG, direction: SDWORD
 DrawHead PROTO,hdcbuffer:HDC,headcenter_X:DWORD,headcenter_Y:DWORD
 DrawTrunk PROTO,hdcbuffer:HDC,trunktop_X:DWORD,trunktop_Y:DWORD,degree:DWORD
@@ -63,3 +64,10 @@ ROTATE_LINE_SPEED_THREE equ 6 ; for high speed
 ROTATE_DIRECTION_NULL equ 0
 ROTATE_DIRECTION_CLOCKWISE equ 1
 ROTATE_DIRECTION_ANTICLOCKWISE equ 2
+
+BLOOD_RED equ 08B0000h
+BLOOD_WIDTH equ 1
+BLOOD_LENGTH equ 15
+BLOOD_LINE_DEGREE equ 360
+BLOOD_LINE_NUM equ 8
+BLOOD_LINE_INTERVAL equ 45
