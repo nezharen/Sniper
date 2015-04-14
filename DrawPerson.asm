@@ -39,7 +39,7 @@ DrawPerson PROC USES eax ebx ecx, hdcbuffer:HDC, hperson:PTR Person
     mov bl,[eax].Person.hasGun
     mov hasGUN,bl
 
-    .IF alive == ALIVE
+    .IF alive == ALIVE || alive == DYING
         mov eax,headcenter_y
         add eax,PERSON_HEAD_RADIUS
         mov neckpointy,eax
@@ -98,49 +98,6 @@ DrawPerson PROC USES eax ebx ecx, hdcbuffer:HDC, hperson:PTR Person
             mov eax,RUN_LEG_SPEED
             mov legspeed,eax
         .ENDIF
-    .ELSEIF alive == DYING
-        mov eax,headcenter_x
-        .IF direction == DIRECTION_LEFT
-            sub eax,PERSON_HEAD_CENTER_TO_ANKLE_LENGTH
-            mov headcenter_x,eax
-            add eax,PERSON_HEAD_RADIUS
-            mov neckpointx,eax
-            add eax,PERSON_TRUNK_LENGTH
-            mov waistpointx,eax
-        .ELSE
-            add eax,PERSON_HEAD_CENTER_TO_ANKLE_LENGTH
-            mov headcenter_x,eax
-            sub eax,PERSON_HEAD_RADIUS
-            mov neckpointx,eax
-            sub eax,PERSON_TRUNK_LENGTH
-            mov waistpointx,eax
-        .ENDIF
-
-        mov eax,headcenter_y
-        add eax,PERSON_HEAD_CENTER_TO_ANKLE_LENGTH
-        mov headcenter_y,eax
-        mov neckpointy,eax
-        mov waistpointy,eax
-        
-        .IF direction == DIRECTION_LEFT
-            mov eax,DEAD_DIRECTION_LEFT_BODY_DEGREE
-            mov trunkdegree,eax
-            mov armleftdegree,eax
-            mov armrightdegree,eax
-            mov legleftdegree,eax
-            mov legrightdegree,eax
-        .ELSE
-            mov eax,DEAD_DIRECTION_RIGHT_BODY_DEGREE
-            mov trunkdegree,eax
-            mov armleftdegree,eax
-            mov armrightdegree,eax
-            mov legleftdegree,eax
-            mov legrightdegree,eax
-        .ENDIF
-        
-        mov eax,DEAD_SPEED
-        mov armspeed,eax
-        mov legspeed,eax
     .ELSE ; alive == DEAD
         mov eax,headcenter_x
         .IF direction == DIRECTION_LEFT
