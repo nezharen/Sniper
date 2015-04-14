@@ -24,7 +24,8 @@ dwPara180  DWORD  180
 DrawPerson PROC USES eax ebx ecx, hdcbuffer:HDC, hperson:PTR Person
            LOCAL headcenter_x:DWORD, headcenter_y:DWORD,neckpointx:DWORD, neckpointy:DWORD, waistpointx:DWORD, waistpointy:DWORD, 
                  trunkdegree:DWORD, armleftdegree:DWORD, armrightdegree:DWORD, legleftdegree:DWORD,legrightdegree:DWORD,armspeed:DWORD,legspeed:DWORD,
-                 stTime:SYSTEMTIME, direction:SDWORD, speed:DWORD, alive:BYTE, hasGUN:BYTE, deadheadcenterX:DWORD, deadheadcenterY:DWORD
+                 stTime:SYSTEMTIME, direction:SDWORD, speed:DWORD, alive:BYTE, hasGUN:BYTE, deadheadcenterX:DWORD, deadheadcenterY:DWORD,
+                 tmpheadcenter_x:DWORD,tmpheadcenter_y:DWORD
     mov eax,hperson
     mov ebx,[eax].Person.position.x
     mov headcenter_x,ebx
@@ -39,7 +40,7 @@ DrawPerson PROC USES eax ebx ecx, hdcbuffer:HDC, hperson:PTR Person
     mov bl,[eax].Person.hasGun
     mov hasGUN,bl
 
-    .IF alive == ALIVE || alive == DYING
+    .IF alive == ALIVE
         mov eax,headcenter_y
         add eax,PERSON_HEAD_RADIUS
         mov neckpointy,eax
@@ -98,6 +99,128 @@ DrawPerson PROC USES eax ebx ecx, hdcbuffer:HDC, hperson:PTR Person
             mov eax,RUN_LEG_SPEED
             mov legspeed,eax
         .ENDIF
+    .ELSEIF alive == DYING
+       .IF direction == DIRECTION_LEFT
+            mov eax,headcenter_x
+            mov tmpheadcenter_x,eax
+            ;caculate dying head center
+            mov ebx,PERSON_HEAD_CENTER_TO_ANKLE_LENGTH
+            mov ecx,DYING_DIRECTION_LEFT_HEAD_TO_FOOT_DEGREE
+            INVOKE CalcX,ecx,ebx,eax
+            mov headcenter_x,eax
+
+            mov eax,headcenter_y
+            mov tmpheadcenter_y,eax
+
+            mov ebx,PERSON_HEAD_CENTER_TO_ANKLE_LENGTH
+            add eax,ebx
+            mov ecx,DYING_DIRECTION_LEFT_HEAD_TO_FOOT_DEGREE
+            INVOKE CalcY,ecx,ebx,eax
+            mov headcenter_y,eax
+            ;caculate dying trunk and arm top point
+            mov eax,tmpheadcenter_x
+            mov ebx,PERSON_HEAD_CENTER_TO_ANKLE_LENGTH
+            sub ebx,PERSON_HEAD_RADIUS
+            mov ecx,DYING_DIRECTION_LEFT_HEAD_TO_FOOT_DEGREE
+            INVOKE CalcX,ecx,ebx,eax
+            mov neckpointx,eax
+
+            mov eax,tmpheadcenter_y
+            mov ebx,PERSON_HEAD_CENTER_TO_ANKLE_LENGTH
+            add eax,ebx
+            sub ebx,PERSON_HEAD_RADIUS
+            mov ecx,DYING_DIRECTION_LEFT_HEAD_TO_FOOT_DEGREE
+            INVOKE CalcY,ecx,ebx,eax
+            mov neckpointy,eax
+            ;caculate dying leg to point
+            mov eax,tmpheadcenter_x
+            mov ebx,PERSON_HEAD_CENTER_TO_ANKLE_LENGTH
+            sub ebx,PERSON_HEAD_RADIUS
+            sub ebx,PERSON_TRUNK_LENGTH
+            mov ecx,DYING_DIRECTION_LEFT_HEAD_TO_FOOT_DEGREE
+            INVOKE CalcX,ecx,ebx,eax
+            mov waistpointx,eax
+
+            mov eax,tmpheadcenter_y
+            mov ebx,PERSON_HEAD_CENTER_TO_ANKLE_LENGTH
+            add eax,ebx
+            sub ebx,PERSON_HEAD_RADIUS
+            sub ebx,PERSON_TRUNK_LENGTH
+            mov ecx,DYING_DIRECTION_LEFT_HEAD_TO_FOOT_DEGREE
+            INVOKE CalcY,ecx,ebx,eax
+            mov waistpointy,eax
+
+            mov eax,DYING_DIRECTION_LEFT_BODY_TO_HEAD_DEGREE
+            mov trunkdegree,eax
+            mov armrightdegree,eax
+            mov armleftdegree,eax
+            mov legleftdegree,eax
+            mov legrightdegree,eax
+
+            mov eax,DYING_SPEED
+            mov armspeed,eax
+            mov legspeed,eax
+       .ELSE
+            mov eax,headcenter_x
+            mov tmpheadcenter_x,eax
+            ;caculate dying head center
+            mov ebx,PERSON_HEAD_CENTER_TO_ANKLE_LENGTH
+            mov ecx,DYING_DIRECTION_RIGHT_HEAD_TO_FOOT_DEGREE
+            INVOKE CalcX,ecx,ebx,eax
+            mov headcenter_x,eax
+
+            mov eax,headcenter_y
+            mov tmpheadcenter_y,eax
+
+            mov ebx,PERSON_HEAD_CENTER_TO_ANKLE_LENGTH
+            add eax,ebx
+            mov ecx,DYING_DIRECTION_RIGHT_HEAD_TO_FOOT_DEGREE
+            INVOKE CalcY,ecx,ebx,eax
+            mov headcenter_y,eax
+            ;caculate dying trunk and arm top point
+            mov eax,tmpheadcenter_x
+            mov ebx,PERSON_HEAD_CENTER_TO_ANKLE_LENGTH
+            sub ebx,PERSON_HEAD_RADIUS
+            mov ecx,DYING_DIRECTION_RIGHT_HEAD_TO_FOOT_DEGREE
+            INVOKE CalcX,ecx,ebx,eax
+            mov neckpointx,eax
+
+            mov eax,tmpheadcenter_y
+            mov ebx,PERSON_HEAD_CENTER_TO_ANKLE_LENGTH
+            add eax,ebx
+            sub ebx,PERSON_HEAD_RADIUS
+            mov ecx,DYING_DIRECTION_RIGHT_HEAD_TO_FOOT_DEGREE
+            INVOKE CalcY,ecx,ebx,eax
+            mov neckpointy,eax
+            ;caculate dying leg to point
+            mov eax,tmpheadcenter_x
+            mov ebx,PERSON_HEAD_CENTER_TO_ANKLE_LENGTH
+            sub ebx,PERSON_HEAD_RADIUS
+            sub ebx,PERSON_TRUNK_LENGTH
+            mov ecx,DYING_DIRECTION_RIGHT_HEAD_TO_FOOT_DEGREE
+            INVOKE CalcX,ecx,ebx,eax
+            mov waistpointx,eax
+
+            mov eax,tmpheadcenter_y
+            mov ebx,PERSON_HEAD_CENTER_TO_ANKLE_LENGTH
+            add eax,ebx
+            sub ebx,PERSON_HEAD_RADIUS
+            sub ebx,PERSON_TRUNK_LENGTH
+            mov ecx,DYING_DIRECTION_RIGHT_HEAD_TO_FOOT_DEGREE
+            INVOKE CalcY,ecx,ebx,eax
+            mov waistpointy,eax
+
+            mov eax,DYING_DIRECTION_RIGHT_BODY_TO_HEAD_DEGREE
+            mov trunkdegree,eax
+            mov armrightdegree,eax
+            mov armleftdegree,eax
+            mov legleftdegree,eax
+            mov legrightdegree,eax
+
+            mov eax,DYING_SPEED
+            mov armspeed,eax
+            mov legspeed,eax
+       .ENDIF
     .ELSE ; alive == DEAD
         mov eax,headcenter_x
         .IF direction == DIRECTION_LEFT
