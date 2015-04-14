@@ -1,5 +1,6 @@
 DrawPerson PROTO, hdcbuffer:HDC, hperson:PTR Person
 DrawShootBlood PROTO,hdcbuffer:HDC, x:DWORD, y:DWORD
+DrawDeadBlood PROTO,hdcbuffer:HDC, x:DWORD, y:DWORD
 DrawRifle PROTO, hdcbuffer: HDC, x: LONG, y: LONG, direction: SDWORD
 DrawHead PROTO,hdcbuffer:HDC,headcenter_X:DWORD,headcenter_Y:DWORD
 DrawTrunk PROTO,hdcbuffer:HDC,trunktop_X:DWORD,trunktop_Y:DWORD,degree:DWORD
