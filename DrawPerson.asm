@@ -186,6 +186,10 @@ DrawPerson PROC USES eax ebx ecx, hdcbuffer:HDC, hperson:PTR Person
         mov legspeed,eax
     .ENDIF
 
+    .IF alive == DEAD
+        INVOKE DrawShootBlood,hdcbuffer,headcenter_x,headcenter_y
+    .ENDIF
+
     INVOKE DrawHead,hdcbuffer,headcenter_x,headcenter_y
     INVOKE DrawTrunk,hdcbuffer,neckpointx,neckpointy,trunkdegree
 
@@ -199,24 +203,19 @@ DrawPerson PROC USES eax ebx ecx, hdcbuffer:HDC, hperson:PTR Person
         INVOKE DrawRifle,hdcbuffer,headcenter_x,headcenter_y,direction
     .ENDIF
 
-    
-    .IF alive == DYING
-        INVOKE DrawShootBlood,hdcbuffer,headcenter_x,headcenter_y
-    .ENDIF
-
-    .IF alive == DEAD
-        INVOKE DrawShootBlood,hdcbuffer,headcenter_x,headcenter_y
-    .ENDIF
-    
     ret
 DrawPerson ENDP
+
 DrawShootBlood PROC USES eax ebx ecx,hdcbuffer:HDC, x:DWORD, y:DWORD
-    LOCAL holdpen:HPEN,hredpen:HPEN,hredbrush:HBRUSH,blood_red:DWORD,tmpX:DWORD,tmpY:DWORD,bloodlength:DWORD,blooddegree:DWORD
+    LOCAL holdpen:HPEN,hredpen:HPEN,hredbrush:HBRUSH,blood_red:DWORD,tmpX:DWORD,tmpY:DWORD,
+    tmpX1:DWORD,tmpY1:DWORD,bloodlength:DWORD,blooddegree:DWORD
     INVOKE SetBkMode,hdcbuffer,TRANSPARENT
     RGB 0CDh, 000h, 000h
     mov blood_red,eax
     INVOKE CreatePen,PS_DOT,BLOOD_WIDTH,blood_red
     mov hredpen,eax
+    INVOKE CreateSolidBrush,blood_red
+    mov hredbrush,eax
     INVOKE SelectObject,hdcbuffer,hredpen
     mov holdpen,eax
     
@@ -239,9 +238,25 @@ Ldrawblood:
     INVOKE LineTo,hdcbuffer,tmpX,tmpY
     popa
     LOOP Ldrawblood
+    
+    INVOKE SelectObject,hdcbuffer,hredbrush
+    mov eax,x
+    sub eax,BLOOD_POOL_MAJOR_HALF_AXIS
+    mov tmpX,eax
+    add eax,BLOOD_POOL_MAJOR_AXIS
+    mov tmpX1,eax
+
+    mov eax,y
+    sub eax,BLOOD_POOL_MINOR_HALF_AXIS
+    mov tmpY,eax
+    add eax,BLOOD_POOL_MINOR_AXIS
+    mov tmpY1,eax
+
+    INVOKE Ellipse,hdcbuffer,tmpX,tmpY,tmpX1,tmpY1
 
     INVOKE SelectObject,hdcbuffer,holdpen
     INVOKE DeleteObject,hredpen
+    INVOKE DeleteObject,hredbrush
     ret
 DrawShootBlood ENDP
 ; x: headcenter_x, y: headcenter_y: direction: DIRECTION_LEFT or DIRECTION_RIGHT
