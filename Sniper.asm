@@ -219,6 +219,18 @@ WinProc PROC, hWnd:HWND, localMsg:DWORD, wParam:WPARAM, lParam:LPARAM
 				.ENDIF
 			   .ENDIF
           .ENDIF
+	 .ELSEIF eax == WM_KEYDOWN
+		  .IF wParam == VK_SPACE
+			   INVOKE GetPageCode
+			   .IF eax >= 21 && eax <= 23
+				mov state, STATE_FAILED
+				mov stage, 0
+				INVOKE ModifyPageCode, 1
+				INVOKE CreateStageSelectMenu, hWnd
+				INVOKE ShowCursor, TRUE
+				INVOKE InvalidateRect, hWnd, NULL, FALSE
+			   .ENDIF
+		  .ENDIF
      .ENDIF
      INVOKE DefWindowProc, hWnd, localMsg, wParam, lParam
      ret
