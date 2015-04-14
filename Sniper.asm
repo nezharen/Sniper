@@ -321,6 +321,7 @@ juagePerson PROC USES eax ebx ecx edx, x:PTR Person
      add ecx, eax
      .IF ecx <= PERSON_HEAD_RADIUS * PERSON_HEAD_RADIUS
           mov [ebx].Person.alive, DYING
+          mov [ebx].Person.speed, SPEED_NULL
      .ENDIF
      ret
 juagePerson ENDP
