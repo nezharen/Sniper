@@ -13,12 +13,14 @@ NO_GUN          equ 0
 HAS_GUN         equ 1
 ID_TIMER        equ 1
 ID_ICON_MAIN    equ 1
+DYING_TIME      equ 50
 
 Person STRUCT
-     alive     BYTE   1
-     position  POINT  <>
-     speed     DWORD  0
-     direction SDWORD 0
-     hasGun    BYTE   0
+     alive     BYTE   ALIVE
+     position  POINT  <0, 0>
+     speed     DWORD  SPEED_NULL
+     direction SDWORD DIRECTION_RIGHT
+     hasGun    BYTE   NO_GUN
+     lastTime  BYTE   DYING_TIME
      lpProc    DWORD  NULL
 Person ENDS

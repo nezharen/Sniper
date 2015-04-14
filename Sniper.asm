@@ -33,11 +33,11 @@ RestoreStage PROTO
             Person <>, <>, <>, <>
      personStageSum DWORD 0, 2, 3, 4
      personBackup Person <>, <>, <>, <>
-            Person <ALIVE, <180, 180>, SPEED_NULL, DIRECTION_RIGHT, NO_GUN, stage_1_0>, <ALIVE, <200, 185>, SPEED_NULL, DIRECTION_LEFT, NO_GUN, stage_1_1>, <>, <>
-            Person <ALIVE, <100, 300>, SPEED_NULL, DIRECTION_RIGHT, HAS_GUN, stage_2_0>, <ALIVE, <300, 350>, SPEED_NULL, DIRECTION_RIGHT, HAS_GUN, stage_2_1>,
-                   <ALIVE, <600, 320>, SPEED_WALK, DIRECTION_LEFT, HAS_GUN, stage_2_2>, <>
-            Person <ALIVE, <50, 370>, SPEED_WALK, DIRECTION_RIGHT, HAS_GUN, stage_3_0>, <ALIVE, <760, 330>, SPEED_WALK, DIRECTION_LEFT, HAS_GUN, stage_3_1>,
-                   <ALIVE, <375, 350>, SPEED_NULL, DIRECTION_RIGHT, NO_GUN, stage_3_2>, <ALIVE, <425, 355>, SPEED_NULL, DIRECTION_LEFT, NO_GUN, stage_3_3>
+            Person <ALIVE, <180, 180>, SPEED_NULL, DIRECTION_RIGHT, NO_GUN, DYING_TIME, stage_1_0>, <ALIVE, <200, 185>, SPEED_NULL, DIRECTION_LEFT, NO_GUN, DYING_TIME, stage_1_1>, <>, <>
+            Person <ALIVE, <100, 300>, SPEED_NULL, DIRECTION_RIGHT, HAS_GUN, DYING_TIME, stage_2_0>, <ALIVE, <300, 350>, SPEED_NULL, DIRECTION_RIGHT, HAS_GUN, DYING_TIME, stage_2_1>,
+                   <ALIVE, <600, 320>, SPEED_WALK, DIRECTION_LEFT, HAS_GUN, DYING_TIME, stage_2_2>, <>
+            Person <ALIVE, <50, 370>, SPEED_WALK, DIRECTION_RIGHT, HAS_GUN, DYING_TIME, stage_3_0>, <ALIVE, <760, 330>, SPEED_WALK, DIRECTION_LEFT, HAS_GUN, DYING_TIME, stage_3_1>,
+                   <ALIVE, <375, 350>, SPEED_NULL, DIRECTION_RIGHT, NO_GUN, DYING_TIME, stage_3_2>, <ALIVE, <425, 355>, SPEED_NULL, DIRECTION_LEFT, NO_GUN, DYING_TIME, stage_3_3>
 .code
 
 WinMain PROC
@@ -279,8 +279,12 @@ callAllPersonProc:
           imul person[ebx + esi].speed
           add person[ebx + esi].position.x, eax
      .ELSEIF person[ebx + esi].alive == DYING
-          call person[ebx + esi].lpProc
-          mov person[ebx + esi].alive, DEAD
+          .IF person[ebx + esi].lastTime == 0
+               call person[ebx + esi].lpProc
+               mov person[ebx + esi].alive, DEAD
+          .ELSE
+               dec person[ebx + esi].lastTime
+          .ENDIF
      .ENDIF
      add esi, TYPE person
      loop callAllPersonProc
