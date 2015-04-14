@@ -220,7 +220,7 @@ WinProc PROC, hWnd:HWND, localMsg:DWORD, wParam:WPARAM, lParam:LPARAM
 			   .ENDIF
           .ENDIF
 	 .ELSEIF eax == WM_KEYDOWN
-		  .IF wParam == VK_SPACE
+		  .IF wParam == VK_ESCAPE
 			   INVOKE GetPageCode
 			   .IF eax >= 21 && eax <= 23
 				mov state, STATE_FAILED
