@@ -254,6 +254,7 @@ DrawStage ENDP
 
 UpdateStage PROC USES eax ebx ecx esi edi
      .IF state != STATE_RUNNING
+          INVOKE Sleep, 500
           mov stage, 0
           ret
      .ENDIF
